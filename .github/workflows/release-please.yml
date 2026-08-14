@@ -79,6 +79,195 @@ jobs:
           curl -sSL https://install.python-poetry.org | python - -y --version 1.5.1
       - name: Install dependencies
         run: poetry install
+      # client_wrapper.py is Fern-generated and cannot be .fernignore'd, so an
+      # in-repo release-please marker does not survive: every regeneration strips
+      # the "# x-release-please-version" comments, the generic updater silently
+      # stops bumping these headers, and the SDK reports a version it is not.
+      # The tag is the one input a regeneration cannot touch, so stamp from it.
+      #
+      # These rewrites apply to the CI checkout ONLY and are never committed
+      # back. main therefore carries whatever version Fern last generated, and
+      # those two strings are expected to read stale between releases — that is
+      # by design, not drift. The published artifact is always correct because
+      # it is built from this stamped tree. Do not "fix" them on main.
+      - name: Stamp Fern-generated version strings from the release tag
+        env:
+          TAG_NAME: ${{ needs.release-please.outputs.tag_name }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os
+          import re
+          import sys
+
+
+          def fail(message):
+              sys.exit(f"::error::{message}")
+
+
+          raw_tag = os.environ["TAG_NAME"].strip()
+          if not raw_tag:
+              fail("release-please produced an empty tag_name; refusing to stamp")
+
+          # include-v-in-tag is false, so the tag is bare semver. Tolerate a
+          # leading "v" so flipping that setting does not fail a valid release.
+          tag = raw_tag[1:] if raw_tag.startswith("v") else raw_tag
+
+          # A prerelease or build suffix is legal and must survive verbatim:
+          # 4.0.0-rc.1 stamps as 4.0.0-rc.1, never as 4.0.0. Anything that is not
+          # semver means the tag is not what we think it is — stop before writing.
+          if not re.fullmatch(
+              r"\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?", tag
+          ):
+              fail(f"tag {raw_tag!r} is not bare semver; refusing to stamp")
+
+          CLIENT_WRAPPER_PATH = "src/speechify/core/client_wrapper.py"
+
+          # The "version" group is rewritten; "prefix" and "suffix" are put back
+          # untouched, so the surrounding literal has to match exactly or not at
+          # all. Both header values are stamped from the same tag.
+          TARGETS = (
+              (
+                  "User-Agent",
+                  r'(?P<prefix>"User-Agent":\s*"speechify-api/)(?P<version>[^"]*)(?P<suffix>")',
+              ),
+              (
+                  "X-Fern-SDK-Version",
+                  r'(?P<prefix>"X-Fern-SDK-Version":\s*")(?P<version>[^"]*)(?P<suffix>")',
+              ),
+          )
+
+          try:
+              with open(CLIENT_WRAPPER_PATH, encoding="utf-8") as handle:
+                  original = handle.read()
+          except OSError as error:
+              fail(f"cannot read {CLIENT_WRAPPER_PATH}: {error}")
+
+
+          def stamp_tag_into(match):
+              return f"{match.group('prefix')}{tag}{match.group('suffix')}"
+
+
+          stamped = original
+          for description, pattern in TARGETS:
+              replaced = [m.group("version") for m in re.finditer(pattern, stamped)]
+              if not replaced:
+                  # Never skip. A regeneration that renames or restructures this
+                  # line has to break the release here, loudly — a stamp that
+                  # quietly finds nothing is exactly how 2.0.1 shipped as 3.0.0.
+                  fail(
+                      f"{CLIENT_WRAPPER_PATH}: no {description} version literal "
+                      "matched. Fern regeneration has changed this file; update "
+                      "the stamp step and the publish assertion before releasing."
+                  )
+              stamped = re.sub(pattern, stamp_tag_into, stamped)
+              for previous in replaced:
+                  status = "unchanged" if previous == tag else "stamped"
+                  print(f"  [{status}] {description}: {previous} -> {tag}")
+
+          if stamped == original:
+              print(f"{CLIENT_WRAPPER_PATH} already at {tag}; nothing to rewrite.")
+          else:
+              with open(CLIENT_WRAPPER_PATH, "w", encoding="utf-8") as handle:
+                  handle.write(stamped)
+              print(f"{CLIENT_WRAPPER_PATH} stamped to {tag}.")
+          PY
+      # A stale version string is how speechify-api 2.0.1 shipped under a 3.0.0
+      # tag. Every version-bearing value must agree with the tag before upload —
+      # PyPI is immutable, so this is the last point where it is still cheap.
+      # Runs after the stamp step: it is an independent check of the result, not
+      # a substitute for it, and it still covers the files nothing stamps.
+      - name: Assert every version string matches the release tag
+        env:
+          TAG_NAME: ${{ needs.release-please.outputs.tag_name }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import os
+          import re
+          import sys
+
+
+          def fail(message):
+              sys.exit(f"::error::{message}")
+
+
+          raw_tag = os.environ["TAG_NAME"].strip()
+          if not raw_tag:
+              fail("release-please produced an empty tag_name; refusing to publish")
+
+          # include-v-in-tag is false, so the tag is bare semver. Tolerate a
+          # leading "v" so flipping that setting does not fail a valid release.
+          tag = raw_tag[1:] if raw_tag.startswith("v") else raw_tag
+
+
+          def read(path):
+              try:
+                  with open(path, encoding="utf-8") as handle:
+                      return handle.read()
+              except OSError as error:
+                  fail(f"cannot read {path}: {error}")
+
+
+          def search(text, pattern, description):
+              match = re.search(pattern, text, re.MULTILINE | re.DOTALL)
+              if not match:
+                  fail(f"no version found for {description}")
+              return match.group("version")
+
+
+          pyproject = read("pyproject.toml")
+          # [project] declares dynamic = ["version"], so poetry-core builds the
+          # artifact from [tool.poetry].version. That table is the real source.
+          poetry_table = re.search(
+              r"^\[tool\.poetry\]\s*$(?P<body>.*?)(?=^\[|\Z)",
+              pyproject,
+              re.MULTILINE | re.DOTALL,
+          )
+          if not poetry_table:
+              fail("pyproject.toml has no [tool.poetry] table")
+
+          client_wrapper = read("src/speechify/core/client_wrapper.py")
+          metadata = json.loads(read(".fern/metadata.json"))
+          if "sdkVersion" not in metadata:
+              fail(".fern/metadata.json has no sdkVersion key")
+
+          found = {
+              "pyproject.toml [tool.poetry].version": search(
+                  poetry_table.group("body"),
+                  r'^version\s*=\s*"(?P<version>[^"]+)"',
+                  "[tool.poetry].version",
+              ),
+              "client_wrapper.py User-Agent": search(
+                  client_wrapper,
+                  r'"User-Agent":\s*"speechify-api/(?P<version>[^"]+)"',
+                  "client_wrapper.py User-Agent",
+              ),
+              "client_wrapper.py X-Fern-SDK-Version": search(
+                  client_wrapper,
+                  r'"X-Fern-SDK-Version":\s*"(?P<version>[^"]+)"',
+                  "client_wrapper.py X-Fern-SDK-Version",
+              ),
+              ".fern/metadata.json sdkVersion": metadata["sdkVersion"],
+          }
+
+          print(f"release tag: {raw_tag} (normalised: {tag})")
+          for source, version in found.items():
+              status = "ok" if version == tag else "MISMATCH"
+              print(f"  [{status}] {source}: {version}")
+
+          mismatched = [s for s, v in found.items() if v != tag]
+          if mismatched:
+              print(
+                  "::error::version strings disagree with tag "
+                  f"{tag}: {', '.join(mismatched)}. "
+                  "Refusing to publish — PyPI uploads are irreversible."
+              )
+              sys.exit(1)
+
+          print(f"All version strings agree with {tag}.")
+          PY
       - name: Publish to PyPI
         run: |
           poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}

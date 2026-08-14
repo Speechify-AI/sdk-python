@@ -1,0 +1,51 @@
+name: manual-publish
+
+# Manual, one-off publisher for an already-tagged release whose automatic
+# publish did not run (or ran with wrong metadata). Checks out an explicit
+# tag/ref, asserts the built version matches, then publishes to PyPI.
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Git tag/ref to publish (e.g. 3.0.0)"
+        required: true
+        default: "3.0.0"
+      expected_version:
+        description: "Version the build MUST produce (guard against stale metadata)"
+        required: true
+        default: "3.0.0"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      - name: Set up python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Bootstrap poetry
+        run: curl -sSL https://install.python-poetry.org | python - -y --version 1.5.1
+      - name: Build
+        run: |
+          rm -rf dist
+          poetry build
+      # inputs.* reach the script through env, never through ${{ }} interpolation:
+      # a dispatch input is attacker-controllable text and would otherwise be
+      # pasted into the shell before bash ever parses it.
+      - name: Assert built version matches expected
+        env:
+          EXPECTED_VERSION: ${{ inputs.expected_version }}
+        run: |
+          set -euo pipefail
+          test -f "dist/speechify_api-${EXPECTED_VERSION}.tar.gz" \
+            || { echo "::error::expected dist/speechify_api-${EXPECTED_VERSION}.tar.gz not found"; ls -la dist; exit 1; }
+          test -f "dist/speechify_api-${EXPECTED_VERSION}-py3-none-any.whl" \
+            || { echo "::error::expected wheel for ${EXPECTED_VERSION} not found"; ls -la dist; exit 1; }
+      - name: Publish to PyPI
+        run: |
+          poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
+          poetry publish
