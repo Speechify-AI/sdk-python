@@ -9,14 +9,14 @@ if typing.TYPE_CHECKING:
     from .types import (
         GetSpeechRequestAudioFormat,
         GetSpeechRequestModel,
-        GetStreamRequestModel,
         StreamAudioRequestAccept,
+        StreamWithTimestampsAudioRequestAccept,
     )
 _dynamic_imports: typing.Dict[str, str] = {
     "GetSpeechRequestAudioFormat": ".types",
     "GetSpeechRequestModel": ".types",
-    "GetStreamRequestModel": ".types",
     "StreamAudioRequestAccept": ".types",
+    "StreamWithTimestampsAudioRequestAccept": ".types",
 }
 
 
@@ -41,4 +41,9 @@ def __dir__():
     return sorted(lazy_attrs)
 
 
-__all__ = ["GetSpeechRequestAudioFormat", "GetSpeechRequestModel", "GetStreamRequestModel", "StreamAudioRequestAccept"]
+__all__ = [
+    "GetSpeechRequestAudioFormat",
+    "GetSpeechRequestModel",
+    "StreamAudioRequestAccept",
+    "StreamWithTimestampsAudioRequestAccept",
+]

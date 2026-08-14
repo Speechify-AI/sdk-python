@@ -16,6 +16,7 @@ from ..core.request_options import RequestOptions
 from ..errors.bad_gateway_error import BadGatewayError
 from ..errors.bad_request_error import BadRequestError
 from ..errors.conflict_error import ConflictError
+from ..errors.content_too_large_error import ContentTooLargeError
 from ..errors.forbidden_error import ForbiddenError
 from ..errors.internal_server_error import InternalServerError
 from ..errors.not_found_error import NotFoundError
@@ -28,6 +29,8 @@ from ..types.error import Error
 from ..types.get_voice import GetVoice
 from ..types.list_voices_response import ListVoicesResponse
 from .types.create_voices_request_gender import CreateVoicesRequestGender
+from .types.list_voices_request_gender import ListVoicesRequestGender
+from .types.list_voices_request_type import ListVoicesRequestType
 from pydantic import ValidationError
 
 # this is used as the default value for optional parameters
@@ -43,15 +46,21 @@ class RawVoicesClient:
         *,
         cursor: typing.Optional[str] = None,
         limit: typing.Optional[int] = None,
+        type: typing.Optional[ListVoicesRequestType] = None,
+        locale: typing.Optional[str] = None,
+        gender: typing.Optional[ListVoicesRequestGender] = None,
+        model: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SyncPager[GetVoice, ListVoicesResponse]:
         """
         Lists the voices available to the caller - the shared voice
-        catalog plus the workspace's personal cloned voices. By default
+        catalog plus the workspace's cloned voices, whichever member or
+        service-account key created them. By default
         the full catalogue is returned in one response. Pagination is
         opt-in: pass `limit` (and then `cursor` from the previous
         response) to page through the list while `has_more` is true. Max
-        page size is 200.
+        page size is 200. Narrow the list with the `type` and `locale`
+        filters (applied before pagination, so pages stay full).
 
         Parameters
         ----------
@@ -60,6 +69,22 @@ class RawVoicesClient:
 
         limit : typing.Optional[int]
             Max items per page (default 50, max 200).
+
+        type : typing.Optional[ListVoicesRequestType]
+            Filter by voice type: `personal` (the workspace's cloned voices)
+            or `shared` (the public catalogue). Omit to return both.
+
+        locale : typing.Optional[str]
+            Filter to voices whose locale matches this BCP-47 language range,
+            prefix-matched: `en` matches `en-US` and `en-GB`; `en-US` matches
+            only `en-US`. Case-insensitive. Omit to return all locales.
+
+        gender : typing.Optional[ListVoicesRequestGender]
+            Filter by voice gender. Omit to return all genders.
+
+        model : typing.Optional[str]
+            Filter to voices that support this model (as listed in each voice's
+            `models[]`), e.g. `simba-3.2`. Omit to return voices for all models.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -75,6 +100,10 @@ class RawVoicesClient:
             params={
                 "cursor": cursor,
                 "limit": limit,
+                "type": type,
+                "locale": locale,
+                "gender": gender,
+                "model": model,
             },
             request_options=request_options,
         )
@@ -93,6 +122,10 @@ class RawVoicesClient:
                 _get_next = lambda: self.list(
                     cursor=_parsed_next,
                     limit=limit,
+                    type=type,
+                    locale=locale,
+                    gender=gender,
+                    model=model,
                     request_options=request_options,
                 )
                 return SyncPager(has_next=_has_next, items=_items, get_next=_get_next, response=_parsed_response)
@@ -166,14 +199,21 @@ class RawVoicesClient:
         name: str,
         gender: CreateVoicesRequestGender,
         sample: core.File,
-        consent: str,
+        consent_challenge_id: str,
+        consent_recording: core.File,
         idempotency_key: typing.Optional[str] = None,
         locale: typing.Optional[str] = OMIT,
         avatar: typing.Optional[core.File] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[GetVoice]:
         """
-        Create a personal (cloned) voice for the user
+        Create a cloned voice for the workspace from a 10-30 second audio sample, with verified consent from the speaker.
+
+        Cloning requires proof that the speaker agreed to it. Create a consent challenge with `POST /v1/voices/consent-challenges`, show the returned `phrase` to the speaker, record them reading it aloud, and send that recording here as `consent_recording` together with the challenge's `consent_challenge_id`. Speechify transcribes the recording, checks it against the phrase it issued, and keeps it as the consent record for the voice. A challenge is single use and short-lived, so record and submit in one sitting.
+
+        The clone belongs to the workspace rather than the member who created it, and access follows the caller's workspace role and API-key scopes exactly as for any other voice: voices scopes to list it, audio scopes to synthesize with it, and the content-management permission plus a write scope on the key to delete it. Cloned voices are usable self-serve on `simba-3.0`, `simba-english` and `simba-multilingual`. `simba-3.2` also serves cloned voices, currently as a limited release enabled per workspace; contact Speechify to have it enabled for yours.
+
+        Callers pinned before `Speechify-Version: 2026-09-13` use the previous flow instead: no challenge, and a `consent` form field carrying the speaker's name and email as a JSON string. That flow is deprecated and will be removed after a sunset window announced in the changelog.
 
         Parameters
         ----------
@@ -189,10 +229,14 @@ class RawVoicesClient:
         sample : core.File
             See core.File for more documentation
 
-        consent : str
-            A **string** representing the user consent information in JSON format
-            This should include the fullName and email of the consenting individual.
-            For example, `{"fullName": "John Doe", "email": "john@example.com"}`
+        consent_challenge_id : str
+            The `id` of the consent challenge this create consumes, from
+            `POST /v1/voices/consent-challenges`. Single use: once a
+            create has consumed it, whether or not that create
+            succeeded, it cannot be used again.
+
+        consent_recording : core.File
+            See core.File for more documentation
 
         idempotency_key : typing.Optional[str]
             A client-generated key (an opaque string, max 255 chars) that makes a
@@ -223,11 +267,12 @@ class RawVoicesClient:
                 "name": name,
                 "locale": locale,
                 "gender": gender,
-                "consent": consent,
+                "consent_challenge_id": consent_challenge_id,
             },
             files={
                 "sample": sample,
                 **({"avatar": avatar} if avatar is not None else {}),
+                "consent_recording": consent_recording,
             },
             headers={
                 "Idempotency-Key": str(idempotency_key) if idempotency_key is not None else None,
@@ -301,6 +346,17 @@ class RawVoicesClient:
                         ),
                     ),
                 )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        Error,
+                        parse_obj_as(
+                            type_=Error,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 422:
                 raise UnprocessableEntityError(
                     headers=dict(_response.headers),
@@ -368,9 +424,9 @@ class RawVoicesClient:
     def get(self, voice_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[GetVoice]:
         """
         Fetch a single voice by id - a shared catalogue voice or one of
-        the caller's own personal (cloned) voices. A personal voice that
-        belongs to another workspace returns 404, identical to an
-        unknown id, so voice inventory is never enumerable across tenants.
+        the workspace's cloned voices. A cloned voice that belongs to
+        another workspace returns 404, identical to an unknown id, so
+        voice inventory is never enumerable across tenants.
 
         Parameters
         ----------
@@ -488,7 +544,9 @@ class RawVoicesClient:
 
     def delete(self, voice_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[None]:
         """
-        Delete a personal (cloned) voice
+        Delete one of the workspace's cloned voices. Requires the
+        `content.manage` permission (owner, admin, or member); a
+        service-account key is authorized by its scopes instead.
 
         Parameters
         ----------
@@ -755,15 +813,21 @@ class AsyncRawVoicesClient:
         *,
         cursor: typing.Optional[str] = None,
         limit: typing.Optional[int] = None,
+        type: typing.Optional[ListVoicesRequestType] = None,
+        locale: typing.Optional[str] = None,
+        gender: typing.Optional[ListVoicesRequestGender] = None,
+        model: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncPager[GetVoice, ListVoicesResponse]:
         """
         Lists the voices available to the caller - the shared voice
-        catalog plus the workspace's personal cloned voices. By default
+        catalog plus the workspace's cloned voices, whichever member or
+        service-account key created them. By default
         the full catalogue is returned in one response. Pagination is
         opt-in: pass `limit` (and then `cursor` from the previous
         response) to page through the list while `has_more` is true. Max
-        page size is 200.
+        page size is 200. Narrow the list with the `type` and `locale`
+        filters (applied before pagination, so pages stay full).
 
         Parameters
         ----------
@@ -772,6 +836,22 @@ class AsyncRawVoicesClient:
 
         limit : typing.Optional[int]
             Max items per page (default 50, max 200).
+
+        type : typing.Optional[ListVoicesRequestType]
+            Filter by voice type: `personal` (the workspace's cloned voices)
+            or `shared` (the public catalogue). Omit to return both.
+
+        locale : typing.Optional[str]
+            Filter to voices whose locale matches this BCP-47 language range,
+            prefix-matched: `en` matches `en-US` and `en-GB`; `en-US` matches
+            only `en-US`. Case-insensitive. Omit to return all locales.
+
+        gender : typing.Optional[ListVoicesRequestGender]
+            Filter by voice gender. Omit to return all genders.
+
+        model : typing.Optional[str]
+            Filter to voices that support this model (as listed in each voice's
+            `models[]`), e.g. `simba-3.2`. Omit to return voices for all models.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -787,6 +867,10 @@ class AsyncRawVoicesClient:
             params={
                 "cursor": cursor,
                 "limit": limit,
+                "type": type,
+                "locale": locale,
+                "gender": gender,
+                "model": model,
             },
             request_options=request_options,
         )
@@ -807,6 +891,10 @@ class AsyncRawVoicesClient:
                     return await self.list(
                         cursor=_parsed_next,
                         limit=limit,
+                        type=type,
+                        locale=locale,
+                        gender=gender,
+                        model=model,
                         request_options=request_options,
                     )
 
@@ -881,14 +969,21 @@ class AsyncRawVoicesClient:
         name: str,
         gender: CreateVoicesRequestGender,
         sample: core.File,
-        consent: str,
+        consent_challenge_id: str,
+        consent_recording: core.File,
         idempotency_key: typing.Optional[str] = None,
         locale: typing.Optional[str] = OMIT,
         avatar: typing.Optional[core.File] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[GetVoice]:
         """
-        Create a personal (cloned) voice for the user
+        Create a cloned voice for the workspace from a 10-30 second audio sample, with verified consent from the speaker.
+
+        Cloning requires proof that the speaker agreed to it. Create a consent challenge with `POST /v1/voices/consent-challenges`, show the returned `phrase` to the speaker, record them reading it aloud, and send that recording here as `consent_recording` together with the challenge's `consent_challenge_id`. Speechify transcribes the recording, checks it against the phrase it issued, and keeps it as the consent record for the voice. A challenge is single use and short-lived, so record and submit in one sitting.
+
+        The clone belongs to the workspace rather than the member who created it, and access follows the caller's workspace role and API-key scopes exactly as for any other voice: voices scopes to list it, audio scopes to synthesize with it, and the content-management permission plus a write scope on the key to delete it. Cloned voices are usable self-serve on `simba-3.0`, `simba-english` and `simba-multilingual`. `simba-3.2` also serves cloned voices, currently as a limited release enabled per workspace; contact Speechify to have it enabled for yours.
+
+        Callers pinned before `Speechify-Version: 2026-09-13` use the previous flow instead: no challenge, and a `consent` form field carrying the speaker's name and email as a JSON string. That flow is deprecated and will be removed after a sunset window announced in the changelog.
 
         Parameters
         ----------
@@ -904,10 +999,14 @@ class AsyncRawVoicesClient:
         sample : core.File
             See core.File for more documentation
 
-        consent : str
-            A **string** representing the user consent information in JSON format
-            This should include the fullName and email of the consenting individual.
-            For example, `{"fullName": "John Doe", "email": "john@example.com"}`
+        consent_challenge_id : str
+            The `id` of the consent challenge this create consumes, from
+            `POST /v1/voices/consent-challenges`. Single use: once a
+            create has consumed it, whether or not that create
+            succeeded, it cannot be used again.
+
+        consent_recording : core.File
+            See core.File for more documentation
 
         idempotency_key : typing.Optional[str]
             A client-generated key (an opaque string, max 255 chars) that makes a
@@ -938,11 +1037,12 @@ class AsyncRawVoicesClient:
                 "name": name,
                 "locale": locale,
                 "gender": gender,
-                "consent": consent,
+                "consent_challenge_id": consent_challenge_id,
             },
             files={
                 "sample": sample,
                 **({"avatar": avatar} if avatar is not None else {}),
+                "consent_recording": consent_recording,
             },
             headers={
                 "Idempotency-Key": str(idempotency_key) if idempotency_key is not None else None,
@@ -1016,6 +1116,17 @@ class AsyncRawVoicesClient:
                         ),
                     ),
                 )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        Error,
+                        parse_obj_as(
+                            type_=Error,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 422:
                 raise UnprocessableEntityError(
                     headers=dict(_response.headers),
@@ -1085,9 +1196,9 @@ class AsyncRawVoicesClient:
     ) -> AsyncHttpResponse[GetVoice]:
         """
         Fetch a single voice by id - a shared catalogue voice or one of
-        the caller's own personal (cloned) voices. A personal voice that
-        belongs to another workspace returns 404, identical to an
-        unknown id, so voice inventory is never enumerable across tenants.
+        the workspace's cloned voices. A cloned voice that belongs to
+        another workspace returns 404, identical to an unknown id, so
+        voice inventory is never enumerable across tenants.
 
         Parameters
         ----------
@@ -1207,7 +1318,9 @@ class AsyncRawVoicesClient:
         self, voice_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[None]:
         """
-        Delete a personal (cloned) voice
+        Delete one of the workspace's cloned voices. Requires the
+        `content.manage` permission (owner, admin, or member); a
+        service-account key is authorized by its scopes instead.
 
         Parameters
         ----------

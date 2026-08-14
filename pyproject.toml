@@ -1,10 +1,10 @@
 [project]
 name = "speechify-api"
-version = "3.0.1"
+dynamic = ["version"]
 
 [tool.poetry]
 name = "speechify-api"
-version = "3.0.1"
+version = "3.0.2"
 description = "Official Speechify API SDK"
 readme = "README.md"
 authors = [
@@ -44,7 +44,7 @@ packages = [
 [tool.poetry.urls]
 Documentation = 'https://docs.speechify.ai/api-reference'
 Homepage = 'https://docs.speechify.ai'
-Repository = 'https://github.com/speechifyinc/speechify-api-sdk-python'
+Repository = 'https://github.com/speechify-ai/sdk-python'
 
 [tool.poetry.dependencies]
 python = "^3.10"

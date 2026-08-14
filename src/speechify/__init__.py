@@ -9,6 +9,7 @@ if typing.TYPE_CHECKING:
     from .types import (
         AudioOutputFormat,
         AudioStreamOutputFormat,
+        ConsentChallenge,
         Error,
         ErrorCode,
         ErrorDetail,
@@ -16,6 +17,8 @@ if typing.TYPE_CHECKING:
         GetSpeechResponse,
         GetSpeechResponseAudioFormat,
         GetStreamOptionsRequest,
+        GetStreamRequest,
+        GetStreamRequestModel,
         GetVoice,
         GetVoiceGender,
         GetVoiceLanguage,
@@ -23,6 +26,8 @@ if typing.TYPE_CHECKING:
         GetVoicesModel,
         GetVoicesModelName,
         ListVoicesResponse,
+        Model,
+        ModelsResponse,
         NestedChunk,
         PaginationMeta,
         SpeechMarks,
@@ -31,6 +36,7 @@ if typing.TYPE_CHECKING:
         BadGatewayError,
         BadRequestError,
         ConflictError,
+        ContentTooLargeError,
         ForbiddenError,
         InternalServerError,
         NotFoundError,
@@ -40,18 +46,18 @@ if typing.TYPE_CHECKING:
         UnauthorizedError,
         UnprocessableEntityError,
     )
-    from . import audio, voices
+    from . import audio, models, voices
     from ._default_clients import DefaultAioHttpClient, DefaultAsyncHttpxClient
     from .audio import (
         GetSpeechRequestAudioFormat,
         GetSpeechRequestModel,
-        GetStreamRequestModel,
         StreamAudioRequestAccept,
+        StreamWithTimestampsAudioRequestAccept,
     )
     from .client import AsyncSpeechify, Speechify
     from .environment import SpeechifyEnvironment
     from .version import __version__
-    from .voices import CreateVoicesRequestGender
+    from .voices import CreateVoicesRequestGender, ListVoicesRequestGender, ListVoicesRequestType
 _dynamic_imports: typing.Dict[str, str] = {
     "AsyncSpeechify": ".client",
     "AudioOutputFormat": ".types",
@@ -59,6 +65,8 @@ _dynamic_imports: typing.Dict[str, str] = {
     "BadGatewayError": ".errors",
     "BadRequestError": ".errors",
     "ConflictError": ".errors",
+    "ConsentChallenge": ".types",
+    "ContentTooLargeError": ".errors",
     "CreateVoicesRequestGender": ".voices",
     "DefaultAioHttpClient": "._default_clients",
     "DefaultAsyncHttpxClient": "._default_clients",
@@ -72,7 +80,8 @@ _dynamic_imports: typing.Dict[str, str] = {
     "GetSpeechResponse": ".types",
     "GetSpeechResponseAudioFormat": ".types",
     "GetStreamOptionsRequest": ".types",
-    "GetStreamRequestModel": ".audio",
+    "GetStreamRequest": ".types",
+    "GetStreamRequestModel": ".types",
     "GetVoice": ".types",
     "GetVoiceGender": ".types",
     "GetVoiceLanguage": ".types",
@@ -80,7 +89,11 @@ _dynamic_imports: typing.Dict[str, str] = {
     "GetVoicesModel": ".types",
     "GetVoicesModelName": ".types",
     "InternalServerError": ".errors",
+    "ListVoicesRequestGender": ".voices",
+    "ListVoicesRequestType": ".voices",
     "ListVoicesResponse": ".types",
+    "Model": ".types",
+    "ModelsResponse": ".types",
     "NestedChunk": ".types",
     "NotFoundError": ".errors",
     "PaginationMeta": ".types",
@@ -90,11 +103,13 @@ _dynamic_imports: typing.Dict[str, str] = {
     "Speechify": ".client",
     "SpeechifyEnvironment": ".environment",
     "StreamAudioRequestAccept": ".audio",
+    "StreamWithTimestampsAudioRequestAccept": ".audio",
     "TooManyRequestsError": ".errors",
     "UnauthorizedError": ".errors",
     "UnprocessableEntityError": ".errors",
     "__version__": ".version",
     "audio": ".audio",
+    "models": ".models",
     "voices": ".voices",
 }
 
@@ -127,6 +142,8 @@ __all__ = [
     "BadGatewayError",
     "BadRequestError",
     "ConflictError",
+    "ConsentChallenge",
+    "ContentTooLargeError",
     "CreateVoicesRequestGender",
     "DefaultAioHttpClient",
     "DefaultAsyncHttpxClient",
@@ -140,6 +157,7 @@ __all__ = [
     "GetSpeechResponse",
     "GetSpeechResponseAudioFormat",
     "GetStreamOptionsRequest",
+    "GetStreamRequest",
     "GetStreamRequestModel",
     "GetVoice",
     "GetVoiceGender",
@@ -148,7 +166,11 @@ __all__ = [
     "GetVoicesModel",
     "GetVoicesModelName",
     "InternalServerError",
+    "ListVoicesRequestGender",
+    "ListVoicesRequestType",
     "ListVoicesResponse",
+    "Model",
+    "ModelsResponse",
     "NestedChunk",
     "NotFoundError",
     "PaginationMeta",
@@ -158,10 +180,12 @@ __all__ = [
     "Speechify",
     "SpeechifyEnvironment",
     "StreamAudioRequestAccept",
+    "StreamWithTimestampsAudioRequestAccept",
     "TooManyRequestsError",
     "UnauthorizedError",
     "UnprocessableEntityError",
     "__version__",
     "audio",
+    "models",
     "voices",
 ]

@@ -13,6 +13,7 @@ from .environment import SpeechifyEnvironment
 
 if typing.TYPE_CHECKING:
     from .audio.client import AsyncAudioClient, AudioClient
+    from .models.client import AsyncModelsClient, ModelsClient
     from .voices.client import AsyncVoicesClient, VoicesClient
 
 
@@ -59,7 +60,7 @@ class Speechify:
     from speechify import Speechify
 
     client = Speechify(
-        "2026-07-07",
+        "2026-09-13",
         token="YOUR_TOKEN",
     )
     """
@@ -69,7 +70,7 @@ class Speechify:
         *,
         base_url: typing.Optional[str] = None,
         environment: SpeechifyEnvironment = SpeechifyEnvironment.DEFAULT,
-        version: typing.Optional[str] = "2026-07-07",
+        version: typing.Optional[str] = "2026-09-13",
         token: typing.Optional[typing.Union[str, typing.Callable[[], str]]] = os.getenv("SPEECHIFY_API_KEY"),
         headers: typing.Optional[typing.Dict[str, str]] = None,
         timeout: typing.Optional[float] = None,
@@ -101,6 +102,7 @@ class Speechify:
             logging=logging,
         )
         self._audio: typing.Optional[AudioClient] = None
+        self._models: typing.Optional[ModelsClient] = None
         self._voices: typing.Optional[VoicesClient] = None
 
     @property
@@ -110,6 +112,14 @@ class Speechify:
 
             self._audio = AudioClient(client_wrapper=self._client_wrapper)
         return self._audio
+
+    @property
+    def models(self):
+        if self._models is None:
+            from .models.client import ModelsClient  # noqa: E402
+
+            self._models = ModelsClient(client_wrapper=self._client_wrapper)
+        return self._models
 
     @property
     def voices(self):
@@ -184,7 +194,7 @@ class AsyncSpeechify:
     from speechify import AsyncSpeechify
 
     client = AsyncSpeechify(
-        "2026-07-07",
+        "2026-09-13",
         token="YOUR_TOKEN",
     )
     """
@@ -194,7 +204,7 @@ class AsyncSpeechify:
         *,
         base_url: typing.Optional[str] = None,
         environment: SpeechifyEnvironment = SpeechifyEnvironment.DEFAULT,
-        version: typing.Optional[str] = "2026-07-07",
+        version: typing.Optional[str] = "2026-09-13",
         token: typing.Optional[typing.Union[str, typing.Callable[[], str]]] = os.getenv("SPEECHIFY_API_KEY"),
         headers: typing.Optional[typing.Dict[str, str]] = None,
         async_token: typing.Optional[typing.Callable[[], typing.Awaitable[str]]] = None,
@@ -226,6 +236,7 @@ class AsyncSpeechify:
             logging=logging,
         )
         self._audio: typing.Optional[AsyncAudioClient] = None
+        self._models: typing.Optional[AsyncModelsClient] = None
         self._voices: typing.Optional[AsyncVoicesClient] = None
 
     @property
@@ -235,6 +246,14 @@ class AsyncSpeechify:
 
             self._audio = AsyncAudioClient(client_wrapper=self._client_wrapper)
         return self._audio
+
+    @property
+    def models(self):
+        if self._models is None:
+            from .models.client import AsyncModelsClient  # noqa: E402
+
+            self._models = AsyncModelsClient(client_wrapper=self._client_wrapper)
+        return self._models
 
     @property
     def voices(self):

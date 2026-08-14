@@ -9,11 +9,12 @@ from ..types.audio_stream_output_format import AudioStreamOutputFormat
 from ..types.get_speech_options_request import GetSpeechOptionsRequest
 from ..types.get_speech_response import GetSpeechResponse
 from ..types.get_stream_options_request import GetStreamOptionsRequest
+from ..types.get_stream_request_model import GetStreamRequestModel
 from .raw_client import AsyncRawAudioClient, RawAudioClient
 from .types.get_speech_request_audio_format import GetSpeechRequestAudioFormat
 from .types.get_speech_request_model import GetSpeechRequestModel
-from .types.get_stream_request_model import GetStreamRequestModel
 from .types.stream_audio_request_accept import StreamAudioRequestAccept
+from .types.stream_with_timestamps_audio_request_accept import StreamWithTimestampsAudioRequestAccept
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -71,7 +72,7 @@ class AudioClient:
             Please refer to the list of the supported languages and recommendations regarding this parameter: https://docs.speechify.ai/docs/language-support.
 
         model : typing.Optional[GetSpeechRequestModel]
-            Model used for audio synthesis. `simba-english` is optimized for English, `simba-multilingual` for non-English or mixed input. `simba-3.2` is the streaming-native model with lower TTFB and richer expressivity, and the recommended Simba 3 model. `simba-3.0` is the earlier Simba 3.0 model, still available. `simba-3.0` and `simba-3.2` are currently English only; multilingual coming soon, and non-English voices return 400 until it ships.
+            Model used for audio synthesis. Defaults to `simba-3.0`, which is streaming-native and multilingual: it officially supports English plus `de-DE`, `es-ES`, `es-MX`, `fr-FR`, `it-IT` and `pt-BR`, and routes each request to its English or its multilingual training based on `language` (falling back to the voice's locale when `language` is omitted). `simba-3.2` is the streaming-native model with the lowest TTFB and richest expressivity, and the recommended Simba 3 model; it is English only, so a non-English voice returns 400. `simba-english` and `simba-multilingual` are the legacy Simba 1.6 models, kept for compatibility.
 
         options : typing.Optional[GetSpeechOptionsRequest]
 
@@ -91,14 +92,14 @@ class AudioClient:
         from speechify import Speechify
 
         client = Speechify(
-            "2026-07-07",
+            "2026-09-13",
             token="YOUR_TOKEN",
         )
         client.audio.speech(
             audio_format="mp3",
             input="Hello! This is the Speechify text-to-speech API.",
-            model="simba-english",
-            voice_id="george",
+            model="simba-3.2",
+            voice_id="geffen_32",
         )
         """
         _response = self._raw_client.speech(
@@ -158,7 +159,7 @@ class AudioClient:
             Please refer to the list of the supported languages and recommendations regarding this parameter: https://docs.speechify.ai/docs/language-support.
 
         model : typing.Optional[GetStreamRequestModel]
-            Model used for audio synthesis. `simba-english` is optimized for English, `simba-multilingual` for non-English or mixed input. `simba-3.2` is the streaming-native model with lower TTFB and richer expressivity, and the recommended Simba 3 model. `simba-3.0` is the earlier Simba 3.0 model, still available. `simba-3.0` and `simba-3.2` are currently English only; multilingual coming soon, and non-English voices return 400 until it ships.
+            Model used for audio synthesis. Defaults to `simba-3.0`, which is streaming-native and multilingual: it officially supports English plus `de-DE`, `es-ES`, `es-MX`, `fr-FR`, `it-IT` and `pt-BR`, and routes each request to its English or its multilingual training based on `language` (falling back to the voice's locale when `language` is omitted). `simba-3.2` is the streaming-native model with the lowest TTFB and richest expressivity, and the recommended Simba 3 model; it is English only, so a non-English voice returns 400. `simba-english` and `simba-multilingual` are the legacy Simba 1.6 models, kept for compatibility.
 
         options : typing.Optional[GetStreamOptionsRequest]
 
@@ -182,7 +183,7 @@ class AudioClient:
         from speechify import Speechify
 
         client = Speechify(
-            "2026-07-07",
+            "2026-09-13",
             token="YOUR_TOKEN",
         )
         client.audio.stream(
@@ -191,6 +192,112 @@ class AudioClient:
         )
         """
         with self._raw_client.stream(
+            input=input,
+            voice_id=voice_id,
+            accept=accept,
+            language=language,
+            model=model,
+            options=options,
+            output_format=output_format,
+            request_options=request_options,
+        ) as r:
+            yield from r.data
+
+    def stream_with_timestamps(
+        self,
+        *,
+        input: str,
+        voice_id: str,
+        accept: typing.Optional[StreamWithTimestampsAudioRequestAccept] = None,
+        language: typing.Optional[str] = OMIT,
+        model: typing.Optional[GetStreamRequestModel] = OMIT,
+        options: typing.Optional[GetStreamOptionsRequest] = OMIT,
+        output_format: typing.Optional[AudioStreamOutputFormat] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> typing.Iterator[str]:
+        """
+        Synthesize speech and stream it back together with word-level speech
+        marks, for text highlighting, captions and audio-text synchronization
+        while the audio is still arriving.
+
+        The response is a Server-Sent Events stream. Each `speech.chunk` event
+        carries a Base64-encoded run of audio, the speech marks that became
+        final with it, or both - a chunk may carry only one of the two, and the
+        last chunk of a stream is often marks-only. A terminal `speech.done`
+        event ends the stream; there is no `[DONE]` sentinel. Ignore any event
+        type you do not recognize, so that new event types do not break your
+        integration.
+
+        Speech-mark times are absolute milliseconds from the start of the
+        synthesis, so concatenate the audio chunks into one stream and apply the
+        marks against that single timeline. Which chunk a mark arrives on is a
+        delivery detail and carries no meaning. Times stay correct for every
+        `output_format`: changing the codec or sample rate does not change the
+        duration.
+
+        Speech marks are produced by the streaming-native models. The default
+        `simba-3.0` and `simba-3.2` both serve this route; the legacy
+        `simba-english` and `simba-multilingual` models return 400
+        `speech_marks_unsupported` here.
+        For Base64-encoded audio and speech marks in one non-streamed JSON
+        response, on any model, use POST /v1/audio/speech.
+
+        Parameters
+        ----------
+        input : str
+            Plain text or SSML to be synthesized to speech.
+            Refer to https://docs.speechify.ai/docs/api-limits for the input size limits.
+            Emotion, Pitch and Speed Rate are configured in the ssml input, please refer to the ssml documentation for more information: https://docs.speechify.ai/docs/ssml#prosody
+
+        voice_id : str
+            Id of the voice to be used for synthesizing speech. Refer to /v1/voices endpoint for available voices
+
+        accept : typing.Optional[StreamWithTimestampsAudioRequestAccept]
+            Selects the audio container/codec carried inside the events when
+            `output_format` is not set in the request body. The selected media
+            type is echoed on the `Speechify-Audio-Content-Type` response
+            header, since the response's own Content-Type is `text/event-stream`.
+
+        language : typing.Optional[str]
+            Language of the input. Follow the format of an ISO 639-1 language code and an ISO 3166-1 region code, separated by a hyphen, e.g. en-US.
+            Please refer to the list of the supported languages and recommendations regarding this parameter: https://docs.speechify.ai/docs/language-support.
+
+        model : typing.Optional[GetStreamRequestModel]
+            Model used for audio synthesis. Defaults to `simba-3.0`, which is streaming-native and multilingual: it officially supports English plus `de-DE`, `es-ES`, `es-MX`, `fr-FR`, `it-IT` and `pt-BR`, and routes each request to its English or its multilingual training based on `language` (falling back to the voice's locale when `language` is omitted). `simba-3.2` is the streaming-native model with the lowest TTFB and richest expressivity, and the recommended Simba 3 model; it is English only, so a non-English voice returns 400. `simba-english` and `simba-multilingual` are the legacy Simba 1.6 models, kept for compatibility.
+
+        options : typing.Optional[GetStreamOptionsRequest]
+
+        output_format : typing.Optional[AudioStreamOutputFormat]
+            The output audio format as a `codec_sampleRate_bitrate` string. Takes precedence over the `Accept` header when set, so you can request formats the `Accept` enum does not cover (e.g. `pcm_16000`, `ulaw_8000`). `wav_*` formats are not supported on streaming - use `POST /v1/audio/speech` for wav.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Yields
+        ------
+        typing.Iterator[str]
+            A Server-Sent Events stream of `speech.chunk` events followed by one
+            terminal `speech.done` event. A failure after the stream has started
+            is delivered as a `speech.error` event carrying the standard error
+            envelope, because the status code is already committed.
+
+        Examples
+        --------
+        from speechify import Speechify
+
+        client = Speechify(
+            "2026-09-13",
+            token="YOUR_TOKEN",
+        )
+        response = client.audio.stream_with_timestamps(
+            input="Streaming long-form audio with the Speechify API.",
+            model="simba-3.2",
+            voice_id="geffen_32",
+        )
+        for chunk in response:
+            yield chunk
+        """
+        with self._raw_client.stream_with_timestamps(
             input=input,
             voice_id=voice_id,
             accept=accept,
@@ -255,7 +362,7 @@ class AsyncAudioClient:
             Please refer to the list of the supported languages and recommendations regarding this parameter: https://docs.speechify.ai/docs/language-support.
 
         model : typing.Optional[GetSpeechRequestModel]
-            Model used for audio synthesis. `simba-english` is optimized for English, `simba-multilingual` for non-English or mixed input. `simba-3.2` is the streaming-native model with lower TTFB and richer expressivity, and the recommended Simba 3 model. `simba-3.0` is the earlier Simba 3.0 model, still available. `simba-3.0` and `simba-3.2` are currently English only; multilingual coming soon, and non-English voices return 400 until it ships.
+            Model used for audio synthesis. Defaults to `simba-3.0`, which is streaming-native and multilingual: it officially supports English plus `de-DE`, `es-ES`, `es-MX`, `fr-FR`, `it-IT` and `pt-BR`, and routes each request to its English or its multilingual training based on `language` (falling back to the voice's locale when `language` is omitted). `simba-3.2` is the streaming-native model with the lowest TTFB and richest expressivity, and the recommended Simba 3 model; it is English only, so a non-English voice returns 400. `simba-english` and `simba-multilingual` are the legacy Simba 1.6 models, kept for compatibility.
 
         options : typing.Optional[GetSpeechOptionsRequest]
 
@@ -277,7 +384,7 @@ class AsyncAudioClient:
         from speechify import AsyncSpeechify
 
         client = AsyncSpeechify(
-            "2026-07-07",
+            "2026-09-13",
             token="YOUR_TOKEN",
         )
 
@@ -286,8 +393,8 @@ class AsyncAudioClient:
             await client.audio.speech(
                 audio_format="mp3",
                 input="Hello! This is the Speechify text-to-speech API.",
-                model="simba-english",
-                voice_id="george",
+                model="simba-3.2",
+                voice_id="geffen_32",
             )
 
 
@@ -350,7 +457,7 @@ class AsyncAudioClient:
             Please refer to the list of the supported languages and recommendations regarding this parameter: https://docs.speechify.ai/docs/language-support.
 
         model : typing.Optional[GetStreamRequestModel]
-            Model used for audio synthesis. `simba-english` is optimized for English, `simba-multilingual` for non-English or mixed input. `simba-3.2` is the streaming-native model with lower TTFB and richer expressivity, and the recommended Simba 3 model. `simba-3.0` is the earlier Simba 3.0 model, still available. `simba-3.0` and `simba-3.2` are currently English only; multilingual coming soon, and non-English voices return 400 until it ships.
+            Model used for audio synthesis. Defaults to `simba-3.0`, which is streaming-native and multilingual: it officially supports English plus `de-DE`, `es-ES`, `es-MX`, `fr-FR`, `it-IT` and `pt-BR`, and routes each request to its English or its multilingual training based on `language` (falling back to the voice's locale when `language` is omitted). `simba-3.2` is the streaming-native model with the lowest TTFB and richest expressivity, and the recommended Simba 3 model; it is English only, so a non-English voice returns 400. `simba-english` and `simba-multilingual` are the legacy Simba 1.6 models, kept for compatibility.
 
         options : typing.Optional[GetStreamOptionsRequest]
 
@@ -376,7 +483,7 @@ class AsyncAudioClient:
         from speechify import AsyncSpeechify
 
         client = AsyncSpeechify(
-            "2026-07-07",
+            "2026-09-13",
             token="YOUR_TOKEN",
         )
 
@@ -391,6 +498,121 @@ class AsyncAudioClient:
         asyncio.run(main())
         """
         async with self._raw_client.stream(
+            input=input,
+            voice_id=voice_id,
+            accept=accept,
+            language=language,
+            model=model,
+            options=options,
+            output_format=output_format,
+            request_options=request_options,
+        ) as r:
+            async for _chunk in r.data:
+                yield _chunk
+
+    async def stream_with_timestamps(
+        self,
+        *,
+        input: str,
+        voice_id: str,
+        accept: typing.Optional[StreamWithTimestampsAudioRequestAccept] = None,
+        language: typing.Optional[str] = OMIT,
+        model: typing.Optional[GetStreamRequestModel] = OMIT,
+        options: typing.Optional[GetStreamOptionsRequest] = OMIT,
+        output_format: typing.Optional[AudioStreamOutputFormat] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> typing.AsyncIterator[str]:
+        """
+        Synthesize speech and stream it back together with word-level speech
+        marks, for text highlighting, captions and audio-text synchronization
+        while the audio is still arriving.
+
+        The response is a Server-Sent Events stream. Each `speech.chunk` event
+        carries a Base64-encoded run of audio, the speech marks that became
+        final with it, or both - a chunk may carry only one of the two, and the
+        last chunk of a stream is often marks-only. A terminal `speech.done`
+        event ends the stream; there is no `[DONE]` sentinel. Ignore any event
+        type you do not recognize, so that new event types do not break your
+        integration.
+
+        Speech-mark times are absolute milliseconds from the start of the
+        synthesis, so concatenate the audio chunks into one stream and apply the
+        marks against that single timeline. Which chunk a mark arrives on is a
+        delivery detail and carries no meaning. Times stay correct for every
+        `output_format`: changing the codec or sample rate does not change the
+        duration.
+
+        Speech marks are produced by the streaming-native models. The default
+        `simba-3.0` and `simba-3.2` both serve this route; the legacy
+        `simba-english` and `simba-multilingual` models return 400
+        `speech_marks_unsupported` here.
+        For Base64-encoded audio and speech marks in one non-streamed JSON
+        response, on any model, use POST /v1/audio/speech.
+
+        Parameters
+        ----------
+        input : str
+            Plain text or SSML to be synthesized to speech.
+            Refer to https://docs.speechify.ai/docs/api-limits for the input size limits.
+            Emotion, Pitch and Speed Rate are configured in the ssml input, please refer to the ssml documentation for more information: https://docs.speechify.ai/docs/ssml#prosody
+
+        voice_id : str
+            Id of the voice to be used for synthesizing speech. Refer to /v1/voices endpoint for available voices
+
+        accept : typing.Optional[StreamWithTimestampsAudioRequestAccept]
+            Selects the audio container/codec carried inside the events when
+            `output_format` is not set in the request body. The selected media
+            type is echoed on the `Speechify-Audio-Content-Type` response
+            header, since the response's own Content-Type is `text/event-stream`.
+
+        language : typing.Optional[str]
+            Language of the input. Follow the format of an ISO 639-1 language code and an ISO 3166-1 region code, separated by a hyphen, e.g. en-US.
+            Please refer to the list of the supported languages and recommendations regarding this parameter: https://docs.speechify.ai/docs/language-support.
+
+        model : typing.Optional[GetStreamRequestModel]
+            Model used for audio synthesis. Defaults to `simba-3.0`, which is streaming-native and multilingual: it officially supports English plus `de-DE`, `es-ES`, `es-MX`, `fr-FR`, `it-IT` and `pt-BR`, and routes each request to its English or its multilingual training based on `language` (falling back to the voice's locale when `language` is omitted). `simba-3.2` is the streaming-native model with the lowest TTFB and richest expressivity, and the recommended Simba 3 model; it is English only, so a non-English voice returns 400. `simba-english` and `simba-multilingual` are the legacy Simba 1.6 models, kept for compatibility.
+
+        options : typing.Optional[GetStreamOptionsRequest]
+
+        output_format : typing.Optional[AudioStreamOutputFormat]
+            The output audio format as a `codec_sampleRate_bitrate` string. Takes precedence over the `Accept` header when set, so you can request formats the `Accept` enum does not cover (e.g. `pcm_16000`, `ulaw_8000`). `wav_*` formats are not supported on streaming - use `POST /v1/audio/speech` for wav.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Yields
+        ------
+        typing.AsyncIterator[str]
+            A Server-Sent Events stream of `speech.chunk` events followed by one
+            terminal `speech.done` event. A failure after the stream has started
+            is delivered as a `speech.error` event carrying the standard error
+            envelope, because the status code is already committed.
+
+        Examples
+        --------
+        import asyncio
+
+        from speechify import AsyncSpeechify
+
+        client = AsyncSpeechify(
+            "2026-09-13",
+            token="YOUR_TOKEN",
+        )
+
+
+        async def main() -> None:
+            response = await client.audio.stream_with_timestamps(
+                input="Streaming long-form audio with the Speechify API.",
+                model="simba-3.2",
+                voice_id="geffen_32",
+            )
+            async for chunk in response:
+                yield chunk
+
+
+        asyncio.run(main())
+        """
+        async with self._raw_client.stream_with_timestamps(
             input=input,
             voice_id=voice_id,
             accept=accept,
