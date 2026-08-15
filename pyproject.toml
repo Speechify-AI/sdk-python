@@ -44,7 +44,7 @@ packages = [
 [tool.poetry.urls]
 Documentation = 'https://docs.speechify.ai/api-reference'
 Homepage = 'https://docs.speechify.ai'
-Repository = 'https://github.com/speechify-ai/sdk-python'
+Repository = 'https://github.com/Speechify-AI/sdk-python'
 
 [tool.poetry.dependencies]
 python = "^3.10"

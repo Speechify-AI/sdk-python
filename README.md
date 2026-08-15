@@ -1,6 +1,6 @@
 # Speechify Python Library
 
-[![fern shield](https://img.shields.io/badge/%F0%9F%8C%BF-Built%20with%20Fern-brightgreen)](https://buildwithfern.com?utm_source=github&utm_medium=github&utm_campaign=readme&utm_source=https%3A%2F%2Fgithub.com%2Fspeechify-ai%2Fsdk-python)
+[![fern shield](https://img.shields.io/badge/%F0%9F%8C%BF-Built%20with%20Fern-brightgreen)](https://buildwithfern.com?utm_source=github&utm_medium=github&utm_campaign=readme&utm_source=https%3A%2F%2Fgithub.com%2FSpeechify-AI%2Fsdk-python)
 [![pypi](https://img.shields.io/pypi/v/speechify-api)](https://pypi.python.org/pypi/speechify-api)
 
 The Speechify Python library provides convenient access to the Speechify APIs from Python.
@@ -35,7 +35,7 @@ pip install speechify-api
 
 ## Reference
 
-A full reference for this library is available [here](https://github.com/speechify-ai/sdk-python/blob/HEAD/./reference.md).
+A full reference for this library is available [here](https://github.com/Speechify-AI/sdk-python/blob/HEAD/./reference.md).
 
 ## Usage
 
