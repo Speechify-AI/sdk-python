@@ -281,6 +281,12 @@ class AudioClient:
             is delivered as a `speech.error` event carrying the standard error
             envelope, because the status code is already committed.
 
+            The transport is `text/event-stream`: each event is an
+            `event:`/`data:` pair whose `data` is one JSON payload matching the
+            schema below. The payload's `type` field mirrors the `event:` name,
+            so the stream is also parseable from `data:` lines alone. Ignore
+            event types you do not recognize.
+
         Examples
         --------
         from speechify import Speechify
@@ -587,6 +593,12 @@ class AsyncAudioClient:
             terminal `speech.done` event. A failure after the stream has started
             is delivered as a `speech.error` event carrying the standard error
             envelope, because the status code is already committed.
+
+            The transport is `text/event-stream`: each event is an
+            `event:`/`data:` pair whose `data` is one JSON payload matching the
+            schema below. The payload's `type` field mirrors the `event:` name,
+            so the stream is also parseable from `data:` lines alone. Ignore
+            event types you do not recognize.
 
         Examples
         --------
