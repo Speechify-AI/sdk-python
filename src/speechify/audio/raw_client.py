@@ -29,6 +29,7 @@ from ..types.get_speech_options_request import GetSpeechOptionsRequest
 from ..types.get_speech_response import GetSpeechResponse
 from ..types.get_stream_options_request import GetStreamOptionsRequest
 from ..types.get_stream_request_model import GetStreamRequestModel
+from ..types.speech_stream_event import SpeechStreamEvent
 from .types.get_speech_request_audio_format import GetSpeechRequestAudioFormat
 from .types.get_speech_request_model import GetSpeechRequestModel
 from .types.stream_audio_request_accept import StreamAudioRequestAccept
@@ -454,7 +455,7 @@ class RawAudioClient:
         options: typing.Optional[GetStreamOptionsRequest] = OMIT,
         output_format: typing.Optional[AudioStreamOutputFormat] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> typing.Iterator[HttpResponse[typing.Iterator[str]]]:
+    ) -> typing.Iterator[HttpResponse[typing.Iterator[SpeechStreamEvent]]]:
         """
         Synthesize speech and stream it back together with word-level speech
         marks, for text highlighting, captions and audio-text synchronization
@@ -515,7 +516,7 @@ class RawAudioClient:
 
         Yields
         ------
-        typing.Iterator[HttpResponse[typing.Iterator[str]]]
+        typing.Iterator[HttpResponse[typing.Iterator[SpeechStreamEvent]]]
             A Server-Sent Events stream of `speech.chunk` events followed by one
             terminal `speech.done` event. A failure after the stream has started
             is delivered as a `speech.error` event carrying the standard error
@@ -548,7 +549,7 @@ class RawAudioClient:
             omit=OMIT,
         ) as _response:
 
-            def _stream() -> HttpResponse[typing.Iterator[str]]:
+            def _stream() -> HttpResponse[typing.Iterator[SpeechStreamEvent]]:
                 try:
                     if 200 <= _response.status_code < 300:
 
@@ -559,10 +560,10 @@ class RawAudioClient:
                                     return
                                 try:
                                     yield typing.cast(
-                                        str,
+                                        SpeechStreamEvent,
                                         parse_sse_obj(
                                             sse=_sse,
-                                            type_=str,  # type: ignore
+                                            type_=SpeechStreamEvent,  # type: ignore
                                         ),
                                     )
                                 except JSONDecodeError as e:
@@ -1111,7 +1112,7 @@ class AsyncRawAudioClient:
         options: typing.Optional[GetStreamOptionsRequest] = OMIT,
         output_format: typing.Optional[AudioStreamOutputFormat] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> typing.AsyncIterator[AsyncHttpResponse[typing.AsyncIterator[str]]]:
+    ) -> typing.AsyncIterator[AsyncHttpResponse[typing.AsyncIterator[SpeechStreamEvent]]]:
         """
         Synthesize speech and stream it back together with word-level speech
         marks, for text highlighting, captions and audio-text synchronization
@@ -1172,7 +1173,7 @@ class AsyncRawAudioClient:
 
         Yields
         ------
-        typing.AsyncIterator[AsyncHttpResponse[typing.AsyncIterator[str]]]
+        typing.AsyncIterator[AsyncHttpResponse[typing.AsyncIterator[SpeechStreamEvent]]]
             A Server-Sent Events stream of `speech.chunk` events followed by one
             terminal `speech.done` event. A failure after the stream has started
             is delivered as a `speech.error` event carrying the standard error
@@ -1205,7 +1206,7 @@ class AsyncRawAudioClient:
             omit=OMIT,
         ) as _response:
 
-            async def _stream() -> AsyncHttpResponse[typing.AsyncIterator[str]]:
+            async def _stream() -> AsyncHttpResponse[typing.AsyncIterator[SpeechStreamEvent]]:
                 try:
                     if 200 <= _response.status_code < 300:
 
@@ -1216,10 +1217,10 @@ class AsyncRawAudioClient:
                                     return
                                 try:
                                     yield typing.cast(
-                                        str,
+                                        SpeechStreamEvent,
                                         parse_sse_obj(
                                             sse=_sse,
-                                            type_=str,  # type: ignore
+                                            type_=SpeechStreamEvent,  # type: ignore
                                         ),
                                     )
                                 except JSONDecodeError as e:

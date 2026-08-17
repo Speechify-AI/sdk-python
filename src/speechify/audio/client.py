@@ -10,6 +10,7 @@ from ..types.get_speech_options_request import GetSpeechOptionsRequest
 from ..types.get_speech_response import GetSpeechResponse
 from ..types.get_stream_options_request import GetStreamOptionsRequest
 from ..types.get_stream_request_model import GetStreamRequestModel
+from ..types.speech_stream_event import SpeechStreamEvent
 from .raw_client import AsyncRawAudioClient, RawAudioClient
 from .types.get_speech_request_audio_format import GetSpeechRequestAudioFormat
 from .types.get_speech_request_model import GetSpeechRequestModel
@@ -214,7 +215,7 @@ class AudioClient:
         options: typing.Optional[GetStreamOptionsRequest] = OMIT,
         output_format: typing.Optional[AudioStreamOutputFormat] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> typing.Iterator[str]:
+    ) -> typing.Iterator[SpeechStreamEvent]:
         """
         Synthesize speech and stream it back together with word-level speech
         marks, for text highlighting, captions and audio-text synchronization
@@ -275,7 +276,7 @@ class AudioClient:
 
         Yields
         ------
-        typing.Iterator[str]
+        typing.Iterator[SpeechStreamEvent]
             A Server-Sent Events stream of `speech.chunk` events followed by one
             terminal `speech.done` event. A failure after the stream has started
             is delivered as a `speech.error` event carrying the standard error
@@ -527,7 +528,7 @@ class AsyncAudioClient:
         options: typing.Optional[GetStreamOptionsRequest] = OMIT,
         output_format: typing.Optional[AudioStreamOutputFormat] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> typing.AsyncIterator[str]:
+    ) -> typing.AsyncIterator[SpeechStreamEvent]:
         """
         Synthesize speech and stream it back together with word-level speech
         marks, for text highlighting, captions and audio-text synchronization
@@ -588,7 +589,7 @@ class AsyncAudioClient:
 
         Yields
         ------
-        typing.AsyncIterator[str]
+        typing.AsyncIterator[SpeechStreamEvent]
             A Server-Sent Events stream of `speech.chunk` events followed by one
             terminal `speech.done` event. A failure after the stream has started
             is delivered as a `speech.error` event carrying the standard error
