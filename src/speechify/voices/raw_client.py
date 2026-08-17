@@ -260,6 +260,9 @@ class RawVoicesClient:
         HttpResponse[GetVoice]
             A created voice
         """
+        _request_options_with_retries_disabled: typing.Optional[RequestOptions] = (
+            {**request_options, "max_retries": 0} if request_options is not None else {"max_retries": 0}
+        )
         _response = self._client_wrapper.httpx_client.request(
             "v1/voices",
             method="POST",
@@ -277,7 +280,7 @@ class RawVoicesClient:
             headers={
                 "Idempotency-Key": str(idempotency_key) if idempotency_key is not None else None,
             },
-            request_options=request_options,
+            request_options=_request_options_with_retries_disabled,
             omit=OMIT,
             force_multipart=True,
         )
@@ -1030,6 +1033,9 @@ class AsyncRawVoicesClient:
         AsyncHttpResponse[GetVoice]
             A created voice
         """
+        _request_options_with_retries_disabled: typing.Optional[RequestOptions] = (
+            {**request_options, "max_retries": 0} if request_options is not None else {"max_retries": 0}
+        )
         _response = await self._client_wrapper.httpx_client.request(
             "v1/voices",
             method="POST",
@@ -1047,7 +1053,7 @@ class AsyncRawVoicesClient:
             headers={
                 "Idempotency-Key": str(idempotency_key) if idempotency_key is not None else None,
             },
-            request_options=request_options,
+            request_options=_request_options_with_retries_disabled,
             omit=OMIT,
             force_multipart=True,
         )
