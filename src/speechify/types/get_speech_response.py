@@ -27,7 +27,7 @@ class GetSpeechResponse(UniversalBaseModel):
 
     output_format: typing.Optional[AudioOutputFormat] = pydantic.Field(default=None)
     """
-    The full `codec_sampleRate_bitrate` format, echoed back when the request set `output_format`.
+    The full `codec_sampleRate_bitrate` format the audio was encoded in, returned when the request set `output_format`. It is the requested value unless the request named a bitrate above the mp3 ceiling, in which case it reports the bitrate actually delivered.
     """
 
     speech_marks: SpeechMarks
