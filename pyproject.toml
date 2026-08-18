@@ -4,7 +4,7 @@ dynamic = ["version"]
 
 [tool.poetry]
 name = "speechify-api"
-version = "3.0.2"
+version = "4.0.0"
 description = "Official Speechify API SDK"
 readme = "README.md"
 authors = [
