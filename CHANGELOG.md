@@ -1,5 +1,16 @@
 # Changelog
 
+## [4.0.0](https://github.com/Speechify-AI/sdk-python/compare/3.0.1...4.0.0) (2026-08-18)
+
+
+### ⚠ BREAKING CHANGES
+
+* the default API version is now 2026-09-13.
+
+### Features
+
+* regenerate SDK for API 2026-09-13 with consent-challenge voice cloning ([#27](https://github.com/Speechify-AI/sdk-python/issues/27)) ([f3f323d](https://github.com/Speechify-AI/sdk-python/commit/f3f323dcba6f9aa9290be47ef8bbcaff06987d18))
+
 ## [3.0.1](https://github.com/SpeechifyInc/speechify-api-sdk-python/compare/3.0.0...3.0.1) (2026-07-10)
 
 
