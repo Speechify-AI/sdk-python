@@ -1,6 +1,6 @@
 # Speechify Python Library
 
-[![fern shield](https://img.shields.io/badge/%F0%9F%8C%BF-Built%20with%20Fern-brightgreen)](https://buildwithfern.com?utm_source=github&utm_medium=github&utm_campaign=readme&utm_source=https%3A%2F%2Fgithub.com%2Fspeechifyinc%2Fspeechify-api-sdk-python)
+[![fern shield](https://img.shields.io/badge/%F0%9F%8C%BF-Built%20with%20Fern-brightgreen)](https://buildwithfern.com?utm_source=github&utm_medium=github&utm_campaign=readme&utm_source=https%3A%2F%2Fgithub.com%2FSpeechify-AI%2Fsdk-python)
 [![pypi](https://img.shields.io/pypi/v/speechify-api)](https://pypi.python.org/pypi/speechify-api)
 
 The Speechify Python library provides convenient access to the Speechify APIs from Python.
@@ -14,6 +14,7 @@ The Speechify Python library provides convenient access to the Speechify APIs fr
 - [Environments](#environments)
 - [Async Client](#async-client)
 - [Exception Handling](#exception-handling)
+- [Streaming](#streaming)
 - [Pagination](#pagination)
 - [Advanced](#advanced)
   - [Access Raw Response Data](#access-raw-response-data)
@@ -34,7 +35,7 @@ pip install speechify-api
 
 ## Reference
 
-A full reference for this library is available [here](https://github.com/speechifyinc/speechify-api-sdk-python/blob/HEAD/./reference.md).
+A full reference for this library is available [here](https://github.com/Speechify-AI/sdk-python/blob/HEAD/./reference.md).
 
 ## Usage
 
@@ -50,8 +51,8 @@ client = Speechify(
 client.audio.speech(
     audio_format="mp3",
     input="Hello! This is the Speechify text-to-speech API.",
-    model="simba-english",
-    voice_id="george",
+    model="simba-3.2",
+    voice_id="geffen_32",
 )
 ```
 
@@ -86,8 +87,8 @@ async def main() -> None:
     await client.audio.speech(
         audio_format="mp3",
         input="Hello! This is the Speechify text-to-speech API.",
-        model="simba-english",
-        voice_id="george",
+        model="simba-3.2",
+        voice_id="geffen_32",
     )
 
 
@@ -109,6 +110,24 @@ except ApiError as e:
     print(e.body)
 ```
 
+## Streaming
+
+The SDK supports streaming responses, as well, the response will be a generator that you can loop over.
+
+```python
+from speechify import Speechify
+
+client = Speechify(
+    token="<token>",
+)
+
+client.audio.stream_with_timestamps(
+    input="Streaming long-form audio with the Speechify API.",
+    model="simba-3.2",
+    voice_id="geffen_32",
+)
+```
+
 ## Pagination
 
 Paginated requests will return a `SyncPager` or `AsyncPager`, which can be used as generators for the underlying object.
@@ -120,7 +139,10 @@ client = Speechify(
     token="<token>",
 )
 
-client.voices.list()
+client.voices.list(
+    locale="en",
+    model="simba-3.2",
+)
 ```
 
 ```python

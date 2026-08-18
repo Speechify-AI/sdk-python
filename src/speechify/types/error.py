@@ -14,7 +14,7 @@ class Error(UniversalBaseModel):
     Anthropic / Stripe style: a machine-readable `error.code` for
     SDK consumers to switch on, a human `error.message` for UI,
     and an optional `error.fields` map for per-field validation
-    errors. `request_id` matches the `X-Request-ID` response
+    errors. `request_id` matches the `Speechify-Request-Id` response
     header and is what customers quote when filing support
     tickets.
     """
@@ -23,7 +23,7 @@ class Error(UniversalBaseModel):
     request_id: typing.Optional[str] = pydantic.Field(default=None)
     """
     Server-side request identifier. Echoes the
-    `X-Request-ID` response header. Stable across the
+    `Speechify-Request-Id` response header. Stable across the
     request's lifetime, written to structured logs, and
     useful when reporting issues.
     """

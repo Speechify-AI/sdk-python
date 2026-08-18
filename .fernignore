@@ -9,3 +9,8 @@
 release-please-config.json
 .release-please-manifest.json
 CHANGELOG.md
+
+# Release safety net. Regen deleted both of these once; keep them listed.
+# manual-publish.yml is the recovery path for a botched release.
+.github/workflows/manual-publish.yml
+AGENTS.md

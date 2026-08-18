@@ -33,13 +33,18 @@ jobs:
         run: |
           rm -rf dist
           poetry build
+      # inputs.* reach the script through env, never through ${{ }} interpolation:
+      # a dispatch input is attacker-controllable text and would otherwise be
+      # pasted into the shell before bash ever parses it.
       - name: Assert built version matches expected
+        env:
+          EXPECTED_VERSION: ${{ inputs.expected_version }}
         run: |
           set -euo pipefail
-          test -f "dist/speechify_api-${{ inputs.expected_version }}.tar.gz" \
-            || { echo "::error::expected dist/speechify_api-${{ inputs.expected_version }}.tar.gz not found"; ls -la dist; exit 1; }
-          test -f "dist/speechify_api-${{ inputs.expected_version }}-py3-none-any.whl" \
-            || { echo "::error::expected wheel for ${{ inputs.expected_version }} not found"; ls -la dist; exit 1; }
+          test -f "dist/speechify_api-${EXPECTED_VERSION}.tar.gz" \
+            || { echo "::error::expected dist/speechify_api-${EXPECTED_VERSION}.tar.gz not found"; ls -la dist; exit 1; }
+          test -f "dist/speechify_api-${EXPECTED_VERSION}-py3-none-any.whl" \
+            || { echo "::error::expected wheel for ${EXPECTED_VERSION} not found"; ls -la dist; exit 1; }
       - name: Publish to PyPI
         run: |
           poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}

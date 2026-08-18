@@ -10,16 +10,12 @@
         {
           "type": "toml",
           "path": "pyproject.toml",
-          "jsonpath": "$.project.version"
-        },
-        {
-          "type": "toml",
-          "path": "pyproject.toml",
           "jsonpath": "$.tool.poetry.version"
         },
         {
-          "type": "generic",
-          "path": "src/speechify/core/client_wrapper.py"
+          "type": "json",
+          "path": ".fern/metadata.json",
+          "jsonpath": "$.sdkVersion"
         }
       ]
     }

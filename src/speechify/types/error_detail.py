@@ -37,6 +37,14 @@ class ErrorDetail(UniversalBaseModel):
     it - the `code` + `message` contract is unchanged.
     """
 
+    docs_url: typing.Optional[str] = pydantic.Field(default=None)
+    """
+    Link to the documentation that resolves this class of
+    error, when a stable page exists. Rate and concurrency
+    429s link the API limits reference, which lists each
+    plan's limits and how to raise them.
+    """
+
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:

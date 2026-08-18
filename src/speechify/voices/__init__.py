@@ -6,8 +6,14 @@ import typing
 from importlib import import_module
 
 if typing.TYPE_CHECKING:
-    from .types import CreateVoicesRequestGender
-_dynamic_imports: typing.Dict[str, str] = {"CreateVoicesRequestGender": ".types"}
+    from .types import CreateVoicesRequestGender, ListVoicesRequestGender, ListVoicesRequestType
+    from . import consent_challenges
+_dynamic_imports: typing.Dict[str, str] = {
+    "CreateVoicesRequestGender": ".types",
+    "ListVoicesRequestGender": ".types",
+    "ListVoicesRequestType": ".types",
+    "consent_challenges": ".consent_challenges",
+}
 
 
 def __getattr__(attr_name: str) -> typing.Any:
@@ -31,4 +37,4 @@ def __dir__():
     return sorted(lazy_attrs)
 
 
-__all__ = ["CreateVoicesRequestGender"]
+__all__ = ["CreateVoicesRequestGender", "ListVoicesRequestGender", "ListVoicesRequestType", "consent_challenges"]

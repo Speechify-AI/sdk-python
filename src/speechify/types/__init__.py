@@ -8,6 +8,7 @@ from importlib import import_module
 if typing.TYPE_CHECKING:
     from .audio_output_format import AudioOutputFormat
     from .audio_stream_output_format import AudioStreamOutputFormat
+    from .consent_challenge import ConsentChallenge
     from .error import Error
     from .error_code import ErrorCode
     from .error_detail import ErrorDetail
@@ -15,6 +16,8 @@ if typing.TYPE_CHECKING:
     from .get_speech_response import GetSpeechResponse
     from .get_speech_response_audio_format import GetSpeechResponseAudioFormat
     from .get_stream_options_request import GetStreamOptionsRequest
+    from .get_stream_request import GetStreamRequest
+    from .get_stream_request_model import GetStreamRequestModel
     from .get_voice import GetVoice
     from .get_voice_gender import GetVoiceGender
     from .get_voice_language import GetVoiceLanguage
@@ -22,12 +25,24 @@ if typing.TYPE_CHECKING:
     from .get_voices_model import GetVoicesModel
     from .get_voices_model_name import GetVoicesModelName
     from .list_voices_response import ListVoicesResponse
+    from .model import Model
+    from .models_response import ModelsResponse
     from .nested_chunk import NestedChunk
     from .pagination_meta import PaginationMeta
+    from .speech_chunk_event import SpeechChunkEvent
+    from .speech_done_event import SpeechDoneEvent
+    from .speech_error_event import SpeechErrorEvent
     from .speech_marks import SpeechMarks
+    from .speech_stream_event import (
+        SpeechStreamEvent,
+        SpeechStreamEvent_SpeechChunk,
+        SpeechStreamEvent_SpeechDone,
+        SpeechStreamEvent_SpeechError,
+    )
 _dynamic_imports: typing.Dict[str, str] = {
     "AudioOutputFormat": ".audio_output_format",
     "AudioStreamOutputFormat": ".audio_stream_output_format",
+    "ConsentChallenge": ".consent_challenge",
     "Error": ".error",
     "ErrorCode": ".error_code",
     "ErrorDetail": ".error_detail",
@@ -35,6 +50,8 @@ _dynamic_imports: typing.Dict[str, str] = {
     "GetSpeechResponse": ".get_speech_response",
     "GetSpeechResponseAudioFormat": ".get_speech_response_audio_format",
     "GetStreamOptionsRequest": ".get_stream_options_request",
+    "GetStreamRequest": ".get_stream_request",
+    "GetStreamRequestModel": ".get_stream_request_model",
     "GetVoice": ".get_voice",
     "GetVoiceGender": ".get_voice_gender",
     "GetVoiceLanguage": ".get_voice_language",
@@ -42,9 +59,18 @@ _dynamic_imports: typing.Dict[str, str] = {
     "GetVoicesModel": ".get_voices_model",
     "GetVoicesModelName": ".get_voices_model_name",
     "ListVoicesResponse": ".list_voices_response",
+    "Model": ".model",
+    "ModelsResponse": ".models_response",
     "NestedChunk": ".nested_chunk",
     "PaginationMeta": ".pagination_meta",
+    "SpeechChunkEvent": ".speech_chunk_event",
+    "SpeechDoneEvent": ".speech_done_event",
+    "SpeechErrorEvent": ".speech_error_event",
     "SpeechMarks": ".speech_marks",
+    "SpeechStreamEvent": ".speech_stream_event",
+    "SpeechStreamEvent_SpeechChunk": ".speech_stream_event",
+    "SpeechStreamEvent_SpeechDone": ".speech_stream_event",
+    "SpeechStreamEvent_SpeechError": ".speech_stream_event",
 }
 
 
@@ -72,6 +98,7 @@ def __dir__():
 __all__ = [
     "AudioOutputFormat",
     "AudioStreamOutputFormat",
+    "ConsentChallenge",
     "Error",
     "ErrorCode",
     "ErrorDetail",
@@ -79,6 +106,8 @@ __all__ = [
     "GetSpeechResponse",
     "GetSpeechResponseAudioFormat",
     "GetStreamOptionsRequest",
+    "GetStreamRequest",
+    "GetStreamRequestModel",
     "GetVoice",
     "GetVoiceGender",
     "GetVoiceLanguage",
@@ -86,7 +115,16 @@ __all__ = [
     "GetVoicesModel",
     "GetVoicesModelName",
     "ListVoicesResponse",
+    "Model",
+    "ModelsResponse",
     "NestedChunk",
     "PaginationMeta",
+    "SpeechChunkEvent",
+    "SpeechDoneEvent",
+    "SpeechErrorEvent",
     "SpeechMarks",
+    "SpeechStreamEvent",
+    "SpeechStreamEvent_SpeechChunk",
+    "SpeechStreamEvent_SpeechDone",
+    "SpeechStreamEvent_SpeechError",
 ]

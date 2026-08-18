@@ -3,12 +3,14 @@
 import contextlib
 import typing
 from json.decoder import JSONDecodeError
+from logging import error, warning
 
 from ..core.api_error import ApiError
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.http_response import AsyncHttpResponse, HttpResponse
+from ..core.http_sse._api import EventSource
 from ..core.parse_error import ParsingError
-from ..core.pydantic_utilities import parse_obj_as
+from ..core.pydantic_utilities import parse_obj_as, parse_sse_obj
 from ..core.request_options import RequestOptions
 from ..core.serialization import convert_and_respect_annotation_metadata
 from ..errors.bad_gateway_error import BadGatewayError
@@ -26,10 +28,12 @@ from ..types.error import Error
 from ..types.get_speech_options_request import GetSpeechOptionsRequest
 from ..types.get_speech_response import GetSpeechResponse
 from ..types.get_stream_options_request import GetStreamOptionsRequest
+from ..types.get_stream_request_model import GetStreamRequestModel
+from ..types.speech_stream_event import SpeechStreamEvent
 from .types.get_speech_request_audio_format import GetSpeechRequestAudioFormat
 from .types.get_speech_request_model import GetSpeechRequestModel
-from .types.get_stream_request_model import GetStreamRequestModel
 from .types.stream_audio_request_accept import StreamAudioRequestAccept
+from .types.stream_with_timestamps_audio_request_accept import StreamWithTimestampsAudioRequestAccept
 from pydantic import ValidationError
 
 # this is used as the default value for optional parameters
@@ -77,7 +81,7 @@ class RawAudioClient:
             Please refer to the list of the supported languages and recommendations regarding this parameter: https://docs.speechify.ai/docs/language-support.
 
         model : typing.Optional[GetSpeechRequestModel]
-            Model used for audio synthesis. `simba-english` is optimized for English, `simba-multilingual` for non-English or mixed input. `simba-3.2` is the streaming-native model with lower TTFB and richer expressivity, and the recommended Simba 3 model. `simba-3.0` is the earlier Simba 3.0 model, still available. `simba-3.0` and `simba-3.2` are currently English only; multilingual coming soon, and non-English voices return 400 until it ships.
+            Model used for audio synthesis. Defaults to `simba-3.0`, which is streaming-native and multilingual: it officially supports English plus `de-DE`, `es-ES`, `es-MX`, `fr-FR`, `it-IT` and `pt-BR`, and routes each request to its English or its multilingual training based on `language` (falling back to the voice's locale when `language` is omitted). `simba-3.2` is the streaming-native model with the lowest TTFB and richest expressivity, and the recommended Simba 3 model; it is English only, so a non-English voice returns 400. `simba-english` and `simba-multilingual` are the legacy Simba 1.6 models, kept for compatibility.
 
         options : typing.Optional[GetSpeechOptionsRequest]
 
@@ -276,7 +280,7 @@ class RawAudioClient:
             Please refer to the list of the supported languages and recommendations regarding this parameter: https://docs.speechify.ai/docs/language-support.
 
         model : typing.Optional[GetStreamRequestModel]
-            Model used for audio synthesis. `simba-english` is optimized for English, `simba-multilingual` for non-English or mixed input. `simba-3.2` is the streaming-native model with lower TTFB and richer expressivity, and the recommended Simba 3 model. `simba-3.0` is the earlier Simba 3.0 model, still available. `simba-3.0` and `simba-3.2` are currently English only; multilingual coming soon, and non-English voices return 400 until it ships.
+            Model used for audio synthesis. Defaults to `simba-3.0`, which is streaming-native and multilingual: it officially supports English plus `de-DE`, `es-ES`, `es-MX`, `fr-FR`, `it-IT` and `pt-BR`, and routes each request to its English or its multilingual training based on `language` (falling back to the voice's locale when `language` is omitted). `simba-3.2` is the streaming-native model with the lowest TTFB and richest expressivity, and the recommended Simba 3 model; it is English only, so a non-English voice returns 400. `simba-english` and `simba-multilingual` are the legacy Simba 1.6 models, kept for compatibility.
 
         options : typing.Optional[GetStreamOptionsRequest]
 
@@ -439,6 +443,258 @@ class RawAudioClient:
 
             yield _stream()
 
+    @contextlib.contextmanager
+    def stream_with_timestamps(
+        self,
+        *,
+        input: str,
+        voice_id: str,
+        accept: typing.Optional[StreamWithTimestampsAudioRequestAccept] = None,
+        language: typing.Optional[str] = OMIT,
+        model: typing.Optional[GetStreamRequestModel] = OMIT,
+        options: typing.Optional[GetStreamOptionsRequest] = OMIT,
+        output_format: typing.Optional[AudioStreamOutputFormat] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> typing.Iterator[HttpResponse[typing.Iterator[SpeechStreamEvent]]]:
+        """
+        Synthesize speech and stream it back together with word-level speech
+        marks, for text highlighting, captions and audio-text synchronization
+        while the audio is still arriving.
+
+        The response is a Server-Sent Events stream. Each `speech.chunk` event
+        carries a Base64-encoded run of audio, the speech marks that became
+        final with it, or both - a chunk may carry only one of the two, and the
+        last chunk of a stream is often marks-only. A terminal `speech.done`
+        event ends the stream; there is no `[DONE]` sentinel. Ignore any event
+        type you do not recognize, so that new event types do not break your
+        integration.
+
+        Speech-mark times are absolute milliseconds from the start of the
+        synthesis, so concatenate the audio chunks into one stream and apply the
+        marks against that single timeline. Which chunk a mark arrives on is a
+        delivery detail and carries no meaning. Times stay correct for every
+        `output_format`: changing the codec or sample rate does not change the
+        duration.
+
+        Speech marks are produced by the streaming-native models. The default
+        `simba-3.0` and `simba-3.2` both serve this route; the legacy
+        `simba-english` and `simba-multilingual` models return 400
+        `speech_marks_unsupported` here.
+        For Base64-encoded audio and speech marks in one non-streamed JSON
+        response, on any model, use POST /v1/audio/speech.
+
+        Parameters
+        ----------
+        input : str
+            Plain text or SSML to be synthesized to speech.
+            Refer to https://docs.speechify.ai/docs/api-limits for the input size limits.
+            Emotion, Pitch and Speed Rate are configured in the ssml input, please refer to the ssml documentation for more information: https://docs.speechify.ai/docs/ssml#prosody
+
+        voice_id : str
+            Id of the voice to be used for synthesizing speech. Refer to /v1/voices endpoint for available voices
+
+        accept : typing.Optional[StreamWithTimestampsAudioRequestAccept]
+            Selects the audio container/codec carried inside the events when
+            `output_format` is not set in the request body. The selected media
+            type is echoed on the `Speechify-Audio-Content-Type` response
+            header, since the response's own Content-Type is `text/event-stream`.
+
+        language : typing.Optional[str]
+            Language of the input. Follow the format of an ISO 639-1 language code and an ISO 3166-1 region code, separated by a hyphen, e.g. en-US.
+            Please refer to the list of the supported languages and recommendations regarding this parameter: https://docs.speechify.ai/docs/language-support.
+
+        model : typing.Optional[GetStreamRequestModel]
+            Model used for audio synthesis. Defaults to `simba-3.0`, which is streaming-native and multilingual: it officially supports English plus `de-DE`, `es-ES`, `es-MX`, `fr-FR`, `it-IT` and `pt-BR`, and routes each request to its English or its multilingual training based on `language` (falling back to the voice's locale when `language` is omitted). `simba-3.2` is the streaming-native model with the lowest TTFB and richest expressivity, and the recommended Simba 3 model; it is English only, so a non-English voice returns 400. `simba-english` and `simba-multilingual` are the legacy Simba 1.6 models, kept for compatibility.
+
+        options : typing.Optional[GetStreamOptionsRequest]
+
+        output_format : typing.Optional[AudioStreamOutputFormat]
+            The output audio format as a `codec_sampleRate_bitrate` string. Takes precedence over the `Accept` header when set, so you can request formats the `Accept` enum does not cover (e.g. `pcm_16000`, `ulaw_8000`). `wav_*` formats are not supported on streaming - use `POST /v1/audio/speech` for wav.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Yields
+        ------
+        typing.Iterator[HttpResponse[typing.Iterator[SpeechStreamEvent]]]
+            A Server-Sent Events stream of `speech.chunk` events followed by one
+            terminal `speech.done` event. A failure after the stream has started
+            is delivered as a `speech.error` event carrying the standard error
+            envelope, because the status code is already committed.
+
+            The transport is `text/event-stream`: each event is an
+            `event:`/`data:` pair whose `data` is one JSON payload matching the
+            schema below. The payload's `type` field mirrors the `event:` name,
+            so the stream is also parseable from `data:` lines alone. Ignore
+            event types you do not recognize.
+        """
+        with self._client_wrapper.httpx_client.stream(
+            "v1/audio/stream/with-timestamps",
+            method="POST",
+            json={
+                "input": input,
+                "language": language,
+                "model": model,
+                "options": convert_and_respect_annotation_metadata(
+                    object_=options, annotation=GetStreamOptionsRequest, direction="write"
+                ),
+                "output_format": output_format,
+                "voice_id": voice_id,
+            },
+            headers={
+                "content-type": "application/json",
+                "Accept": str(accept) if accept is not None else None,
+            },
+            request_options=request_options,
+            omit=OMIT,
+        ) as _response:
+
+            def _stream() -> HttpResponse[typing.Iterator[SpeechStreamEvent]]:
+                try:
+                    if 200 <= _response.status_code < 300:
+
+                        def _iter():
+                            _event_source = EventSource(_response)
+                            for _sse in _event_source.iter_sse():
+                                if _sse.data == None:
+                                    return
+                                try:
+                                    yield typing.cast(
+                                        SpeechStreamEvent,
+                                        parse_sse_obj(
+                                            sse=_sse,
+                                            type_=SpeechStreamEvent,  # type: ignore
+                                        ),
+                                    )
+                                except JSONDecodeError as e:
+                                    warning(f"Skipping SSE event with invalid JSON: {e}, sse: {_sse!r}")
+                                except (TypeError, ValueError, KeyError, AttributeError) as e:
+                                    warning(
+                                        f"Skipping SSE event due to model construction error: {type(e).__name__}: {e}, sse: {_sse!r}"
+                                    )
+                                except Exception as e:
+                                    error(
+                                        f"Unexpected error processing SSE event: {type(e).__name__}: {e}, sse: {_sse!r}"
+                                    )
+                            return
+
+                        return HttpResponse(response=_response, data=_iter())
+                    _response.read()
+                    if _response.status_code == 400:
+                        raise BadRequestError(
+                            headers=dict(_response.headers),
+                            body=typing.cast(
+                                typing.Any,
+                                parse_obj_as(
+                                    type_=typing.Any,  # type: ignore
+                                    object_=_response.json(),
+                                ),
+                            ),
+                        )
+                    if _response.status_code == 401:
+                        raise UnauthorizedError(
+                            headers=dict(_response.headers),
+                            body=typing.cast(
+                                typing.Any,
+                                parse_obj_as(
+                                    type_=typing.Any,  # type: ignore
+                                    object_=_response.json(),
+                                ),
+                            ),
+                        )
+                    if _response.status_code == 402:
+                        raise PaymentRequiredError(
+                            headers=dict(_response.headers),
+                            body=typing.cast(
+                                Error,
+                                parse_obj_as(
+                                    type_=Error,  # type: ignore
+                                    object_=_response.json(),
+                                ),
+                            ),
+                        )
+                    if _response.status_code == 403:
+                        raise ForbiddenError(
+                            headers=dict(_response.headers),
+                            body=typing.cast(
+                                Error,
+                                parse_obj_as(
+                                    type_=Error,  # type: ignore
+                                    object_=_response.json(),
+                                ),
+                            ),
+                        )
+                    if _response.status_code == 404:
+                        raise NotFoundError(
+                            headers=dict(_response.headers),
+                            body=typing.cast(
+                                typing.Any,
+                                parse_obj_as(
+                                    type_=typing.Any,  # type: ignore
+                                    object_=_response.json(),
+                                ),
+                            ),
+                        )
+                    if _response.status_code == 429:
+                        raise TooManyRequestsError(
+                            headers=dict(_response.headers),
+                            body=typing.cast(
+                                Error,
+                                parse_obj_as(
+                                    type_=Error,  # type: ignore
+                                    object_=_response.json(),
+                                ),
+                            ),
+                        )
+                    if _response.status_code == 500:
+                        raise InternalServerError(
+                            headers=dict(_response.headers),
+                            body=typing.cast(
+                                Error,
+                                parse_obj_as(
+                                    type_=Error,  # type: ignore
+                                    object_=_response.json(),
+                                ),
+                            ),
+                        )
+                    if _response.status_code == 502:
+                        raise BadGatewayError(
+                            headers=dict(_response.headers),
+                            body=typing.cast(
+                                Error,
+                                parse_obj_as(
+                                    type_=Error,  # type: ignore
+                                    object_=_response.json(),
+                                ),
+                            ),
+                        )
+                    if _response.status_code == 503:
+                        raise ServiceUnavailableError(
+                            headers=dict(_response.headers),
+                            body=typing.cast(
+                                Error,
+                                parse_obj_as(
+                                    type_=Error,  # type: ignore
+                                    object_=_response.json(),
+                                ),
+                            ),
+                        )
+                    _response_json = _response.json()
+                except JSONDecodeError:
+                    raise ApiError(
+                        status_code=_response.status_code, headers=dict(_response.headers), body=_response.text
+                    )
+                except ValidationError as e:
+                    raise ParsingError(
+                        status_code=_response.status_code,
+                        headers=dict(_response.headers),
+                        body=_response.json(),
+                        cause=e,
+                    )
+                raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+            yield _stream()
+
 
 class AsyncRawAudioClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
@@ -481,7 +737,7 @@ class AsyncRawAudioClient:
             Please refer to the list of the supported languages and recommendations regarding this parameter: https://docs.speechify.ai/docs/language-support.
 
         model : typing.Optional[GetSpeechRequestModel]
-            Model used for audio synthesis. `simba-english` is optimized for English, `simba-multilingual` for non-English or mixed input. `simba-3.2` is the streaming-native model with lower TTFB and richer expressivity, and the recommended Simba 3 model. `simba-3.0` is the earlier Simba 3.0 model, still available. `simba-3.0` and `simba-3.2` are currently English only; multilingual coming soon, and non-English voices return 400 until it ships.
+            Model used for audio synthesis. Defaults to `simba-3.0`, which is streaming-native and multilingual: it officially supports English plus `de-DE`, `es-ES`, `es-MX`, `fr-FR`, `it-IT` and `pt-BR`, and routes each request to its English or its multilingual training based on `language` (falling back to the voice's locale when `language` is omitted). `simba-3.2` is the streaming-native model with the lowest TTFB and richest expressivity, and the recommended Simba 3 model; it is English only, so a non-English voice returns 400. `simba-english` and `simba-multilingual` are the legacy Simba 1.6 models, kept for compatibility.
 
         options : typing.Optional[GetSpeechOptionsRequest]
 
@@ -680,7 +936,7 @@ class AsyncRawAudioClient:
             Please refer to the list of the supported languages and recommendations regarding this parameter: https://docs.speechify.ai/docs/language-support.
 
         model : typing.Optional[GetStreamRequestModel]
-            Model used for audio synthesis. `simba-english` is optimized for English, `simba-multilingual` for non-English or mixed input. `simba-3.2` is the streaming-native model with lower TTFB and richer expressivity, and the recommended Simba 3 model. `simba-3.0` is the earlier Simba 3.0 model, still available. `simba-3.0` and `simba-3.2` are currently English only; multilingual coming soon, and non-English voices return 400 until it ships.
+            Model used for audio synthesis. Defaults to `simba-3.0`, which is streaming-native and multilingual: it officially supports English plus `de-DE`, `es-ES`, `es-MX`, `fr-FR`, `it-IT` and `pt-BR`, and routes each request to its English or its multilingual training based on `language` (falling back to the voice's locale when `language` is omitted). `simba-3.2` is the streaming-native model with the lowest TTFB and richest expressivity, and the recommended Simba 3 model; it is English only, so a non-English voice returns 400. `simba-english` and `simba-multilingual` are the legacy Simba 1.6 models, kept for compatibility.
 
         options : typing.Optional[GetStreamOptionsRequest]
 
@@ -728,6 +984,258 @@ class AsyncRawAudioClient:
                             response=_response,
                             data=(_chunk async for _chunk in _response.aiter_bytes(chunk_size=_chunk_size)),
                         )
+                    await _response.aread()
+                    if _response.status_code == 400:
+                        raise BadRequestError(
+                            headers=dict(_response.headers),
+                            body=typing.cast(
+                                typing.Any,
+                                parse_obj_as(
+                                    type_=typing.Any,  # type: ignore
+                                    object_=_response.json(),
+                                ),
+                            ),
+                        )
+                    if _response.status_code == 401:
+                        raise UnauthorizedError(
+                            headers=dict(_response.headers),
+                            body=typing.cast(
+                                typing.Any,
+                                parse_obj_as(
+                                    type_=typing.Any,  # type: ignore
+                                    object_=_response.json(),
+                                ),
+                            ),
+                        )
+                    if _response.status_code == 402:
+                        raise PaymentRequiredError(
+                            headers=dict(_response.headers),
+                            body=typing.cast(
+                                Error,
+                                parse_obj_as(
+                                    type_=Error,  # type: ignore
+                                    object_=_response.json(),
+                                ),
+                            ),
+                        )
+                    if _response.status_code == 403:
+                        raise ForbiddenError(
+                            headers=dict(_response.headers),
+                            body=typing.cast(
+                                Error,
+                                parse_obj_as(
+                                    type_=Error,  # type: ignore
+                                    object_=_response.json(),
+                                ),
+                            ),
+                        )
+                    if _response.status_code == 404:
+                        raise NotFoundError(
+                            headers=dict(_response.headers),
+                            body=typing.cast(
+                                typing.Any,
+                                parse_obj_as(
+                                    type_=typing.Any,  # type: ignore
+                                    object_=_response.json(),
+                                ),
+                            ),
+                        )
+                    if _response.status_code == 429:
+                        raise TooManyRequestsError(
+                            headers=dict(_response.headers),
+                            body=typing.cast(
+                                Error,
+                                parse_obj_as(
+                                    type_=Error,  # type: ignore
+                                    object_=_response.json(),
+                                ),
+                            ),
+                        )
+                    if _response.status_code == 500:
+                        raise InternalServerError(
+                            headers=dict(_response.headers),
+                            body=typing.cast(
+                                Error,
+                                parse_obj_as(
+                                    type_=Error,  # type: ignore
+                                    object_=_response.json(),
+                                ),
+                            ),
+                        )
+                    if _response.status_code == 502:
+                        raise BadGatewayError(
+                            headers=dict(_response.headers),
+                            body=typing.cast(
+                                Error,
+                                parse_obj_as(
+                                    type_=Error,  # type: ignore
+                                    object_=_response.json(),
+                                ),
+                            ),
+                        )
+                    if _response.status_code == 503:
+                        raise ServiceUnavailableError(
+                            headers=dict(_response.headers),
+                            body=typing.cast(
+                                Error,
+                                parse_obj_as(
+                                    type_=Error,  # type: ignore
+                                    object_=_response.json(),
+                                ),
+                            ),
+                        )
+                    _response_json = _response.json()
+                except JSONDecodeError:
+                    raise ApiError(
+                        status_code=_response.status_code, headers=dict(_response.headers), body=_response.text
+                    )
+                except ValidationError as e:
+                    raise ParsingError(
+                        status_code=_response.status_code,
+                        headers=dict(_response.headers),
+                        body=_response.json(),
+                        cause=e,
+                    )
+                raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+            yield await _stream()
+
+    @contextlib.asynccontextmanager
+    async def stream_with_timestamps(
+        self,
+        *,
+        input: str,
+        voice_id: str,
+        accept: typing.Optional[StreamWithTimestampsAudioRequestAccept] = None,
+        language: typing.Optional[str] = OMIT,
+        model: typing.Optional[GetStreamRequestModel] = OMIT,
+        options: typing.Optional[GetStreamOptionsRequest] = OMIT,
+        output_format: typing.Optional[AudioStreamOutputFormat] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> typing.AsyncIterator[AsyncHttpResponse[typing.AsyncIterator[SpeechStreamEvent]]]:
+        """
+        Synthesize speech and stream it back together with word-level speech
+        marks, for text highlighting, captions and audio-text synchronization
+        while the audio is still arriving.
+
+        The response is a Server-Sent Events stream. Each `speech.chunk` event
+        carries a Base64-encoded run of audio, the speech marks that became
+        final with it, or both - a chunk may carry only one of the two, and the
+        last chunk of a stream is often marks-only. A terminal `speech.done`
+        event ends the stream; there is no `[DONE]` sentinel. Ignore any event
+        type you do not recognize, so that new event types do not break your
+        integration.
+
+        Speech-mark times are absolute milliseconds from the start of the
+        synthesis, so concatenate the audio chunks into one stream and apply the
+        marks against that single timeline. Which chunk a mark arrives on is a
+        delivery detail and carries no meaning. Times stay correct for every
+        `output_format`: changing the codec or sample rate does not change the
+        duration.
+
+        Speech marks are produced by the streaming-native models. The default
+        `simba-3.0` and `simba-3.2` both serve this route; the legacy
+        `simba-english` and `simba-multilingual` models return 400
+        `speech_marks_unsupported` here.
+        For Base64-encoded audio and speech marks in one non-streamed JSON
+        response, on any model, use POST /v1/audio/speech.
+
+        Parameters
+        ----------
+        input : str
+            Plain text or SSML to be synthesized to speech.
+            Refer to https://docs.speechify.ai/docs/api-limits for the input size limits.
+            Emotion, Pitch and Speed Rate are configured in the ssml input, please refer to the ssml documentation for more information: https://docs.speechify.ai/docs/ssml#prosody
+
+        voice_id : str
+            Id of the voice to be used for synthesizing speech. Refer to /v1/voices endpoint for available voices
+
+        accept : typing.Optional[StreamWithTimestampsAudioRequestAccept]
+            Selects the audio container/codec carried inside the events when
+            `output_format` is not set in the request body. The selected media
+            type is echoed on the `Speechify-Audio-Content-Type` response
+            header, since the response's own Content-Type is `text/event-stream`.
+
+        language : typing.Optional[str]
+            Language of the input. Follow the format of an ISO 639-1 language code and an ISO 3166-1 region code, separated by a hyphen, e.g. en-US.
+            Please refer to the list of the supported languages and recommendations regarding this parameter: https://docs.speechify.ai/docs/language-support.
+
+        model : typing.Optional[GetStreamRequestModel]
+            Model used for audio synthesis. Defaults to `simba-3.0`, which is streaming-native and multilingual: it officially supports English plus `de-DE`, `es-ES`, `es-MX`, `fr-FR`, `it-IT` and `pt-BR`, and routes each request to its English or its multilingual training based on `language` (falling back to the voice's locale when `language` is omitted). `simba-3.2` is the streaming-native model with the lowest TTFB and richest expressivity, and the recommended Simba 3 model; it is English only, so a non-English voice returns 400. `simba-english` and `simba-multilingual` are the legacy Simba 1.6 models, kept for compatibility.
+
+        options : typing.Optional[GetStreamOptionsRequest]
+
+        output_format : typing.Optional[AudioStreamOutputFormat]
+            The output audio format as a `codec_sampleRate_bitrate` string. Takes precedence over the `Accept` header when set, so you can request formats the `Accept` enum does not cover (e.g. `pcm_16000`, `ulaw_8000`). `wav_*` formats are not supported on streaming - use `POST /v1/audio/speech` for wav.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Yields
+        ------
+        typing.AsyncIterator[AsyncHttpResponse[typing.AsyncIterator[SpeechStreamEvent]]]
+            A Server-Sent Events stream of `speech.chunk` events followed by one
+            terminal `speech.done` event. A failure after the stream has started
+            is delivered as a `speech.error` event carrying the standard error
+            envelope, because the status code is already committed.
+
+            The transport is `text/event-stream`: each event is an
+            `event:`/`data:` pair whose `data` is one JSON payload matching the
+            schema below. The payload's `type` field mirrors the `event:` name,
+            so the stream is also parseable from `data:` lines alone. Ignore
+            event types you do not recognize.
+        """
+        async with self._client_wrapper.httpx_client.stream(
+            "v1/audio/stream/with-timestamps",
+            method="POST",
+            json={
+                "input": input,
+                "language": language,
+                "model": model,
+                "options": convert_and_respect_annotation_metadata(
+                    object_=options, annotation=GetStreamOptionsRequest, direction="write"
+                ),
+                "output_format": output_format,
+                "voice_id": voice_id,
+            },
+            headers={
+                "content-type": "application/json",
+                "Accept": str(accept) if accept is not None else None,
+            },
+            request_options=request_options,
+            omit=OMIT,
+        ) as _response:
+
+            async def _stream() -> AsyncHttpResponse[typing.AsyncIterator[SpeechStreamEvent]]:
+                try:
+                    if 200 <= _response.status_code < 300:
+
+                        async def _iter():
+                            _event_source = EventSource(_response)
+                            async for _sse in _event_source.aiter_sse():
+                                if _sse.data == None:
+                                    return
+                                try:
+                                    yield typing.cast(
+                                        SpeechStreamEvent,
+                                        parse_sse_obj(
+                                            sse=_sse,
+                                            type_=SpeechStreamEvent,  # type: ignore
+                                        ),
+                                    )
+                                except JSONDecodeError as e:
+                                    warning(f"Skipping SSE event with invalid JSON: {e}, sse: {_sse!r}")
+                                except (TypeError, ValueError, KeyError, AttributeError) as e:
+                                    warning(
+                                        f"Skipping SSE event due to model construction error: {type(e).__name__}: {e}, sse: {_sse!r}"
+                                    )
+                                except Exception as e:
+                                    error(
+                                        f"Unexpected error processing SSE event: {type(e).__name__}: {e}, sse: {_sse!r}"
+                                    )
+                            return
+
+                        return AsyncHttpResponse(response=_response, data=_iter())
                     await _response.aread()
                     if _response.status_code == 400:
                         raise BadRequestError(
