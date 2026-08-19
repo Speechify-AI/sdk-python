@@ -31,12 +31,12 @@ class BaseClientWrapper:
         import platform
 
         headers: typing.Dict[str, str] = {
-            "User-Agent": "speechify-api/4.0.0",
+            "User-Agent": "speechify-api/4.0.1",
             "X-Fern-Language": "Python",
             "X-Fern-Runtime": f"python/{platform.python_version()}",
             "X-Fern-Platform": f"{platform.system().lower()}/{platform.release()}",
             "X-Fern-SDK-Name": "speechify-api",
-            "X-Fern-SDK-Version": "4.0.0",
+            "X-Fern-SDK-Version": "4.0.1",
             **(self.get_custom_headers() or {}),
         }
         if self._version is not None:
