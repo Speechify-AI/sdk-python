@@ -43,6 +43,7 @@ ErrorCode = typing.Union[
         "agent_test_not_found",
         "workspace_not_found",
         "invite_not_found",
+        "project_not_found",
         "insufficient_scope",
         "purchased_numbers_not_included",
         "phone_number_quota_reached",
