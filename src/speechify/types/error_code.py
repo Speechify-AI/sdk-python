@@ -44,6 +44,7 @@ ErrorCode = typing.Union[
         "workspace_not_found",
         "invite_not_found",
         "project_not_found",
+        "cross_project_reference",
         "insufficient_scope",
         "purchased_numbers_not_included",
         "phone_number_quota_reached",
