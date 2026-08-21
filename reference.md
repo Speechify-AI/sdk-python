@@ -99,7 +99,11 @@ Please refer to the list of the supported languages and recommendations regardin
 <dl>
 <dd>
 
-**model:** `typing.Optional[GetSpeechRequestModel]` — Model used for audio synthesis. Defaults to `simba-3.0`, which is streaming-native and multilingual: it officially supports English plus `de-DE`, `es-ES`, `es-MX`, `fr-FR`, `it-IT` and `pt-BR`, and routes each request to its English or its multilingual training based on `language` (falling back to the voice's locale when `language` is omitted). `simba-3.2` is the streaming-native model with the lowest TTFB and richest expressivity, and the recommended Simba 3 model; it is English only, so a non-English voice returns 400. `simba-english` and `simba-multilingual` are the legacy Simba 1.6 models, kept for compatibility.
+**model:** `typing.Optional[GetSpeechRequestModel]` 
+
+Model used for audio synthesis. Defaults to `simba-3.0`, which is streaming-native and multilingual: it officially supports English plus `de-DE`, `es-ES`, `es-MX`, `fr-FR`, `it-IT` and `pt-BR`, and routes each request to its English or its multilingual training based on `language` (falling back to the voice's locale when `language` is omitted). `simba-3.2` is the streaming-native model with the lowest TTFB and richest expressivity, and the recommended Simba 3 model; it is English only, so a non-English voice returns 400.
+
+The legacy Simba 1.6 models `simba-english` and `simba-multilingual` are retired from API version `2026-09-21`: naming one returns 400 `model_retired`. Pinning your API version to a date before `2026-09-21` keeps them working until **2026-11-21**, when both are switched off for every API version. Migrate to `simba-3.2` (English) or `simba-3.0` before then; call GET /v1/audio/models to see the set your workspace can select today.
     
 </dd>
 </dl>
@@ -263,9 +267,12 @@ delivery detail and carries no meaning. Times stay correct for every
 duration.
 
 Speech marks are produced by the streaming-native models. The default
-`simba-3.0` and `simba-3.2` both serve this route; the legacy
-`simba-english` and `simba-multilingual` models return 400
-`speech_marks_unsupported` here.
+`simba-3.0` and `simba-3.2` both serve this route. The legacy
+`simba-english` and `simba-multilingual` models never could: on a
+workspace pinned before API version `2026-09-21` they return 400
+`speech_marks_unsupported` here, and from that version on they return
+400 `model_retired` on every synthesis route. Both are switched off
+entirely on 2026-11-21.
 For Base64-encoded audio and speech marks in one non-streamed JSON
 response, on any model, use POST /v1/audio/speech.
 </dd>
@@ -563,7 +570,7 @@ Create a cloned voice for the workspace from a 10-30 second audio sample, with v
 
 Cloning requires proof that the speaker agreed to it. Create a consent challenge with `POST /v1/voices/consent-challenges`, show the returned `phrase` to the speaker, record them reading it aloud, and send that recording here as `consent_recording` together with the challenge's `consent_challenge_id`. Speechify transcribes the recording, checks it against the phrase it issued, checks that its speaker is the speaker in your `sample`, and keeps it as the consent record for the voice. The person consenting therefore has to be the person being cloned. A challenge is single use and short-lived, so record and submit in one sitting.
 
-The clone belongs to the workspace rather than the member who created it, and access follows the caller's workspace role and API-key scopes exactly as for any other voice: voices scopes to list it, audio scopes to synthesize with it, and the content-management permission plus a write scope on the key to delete it. Cloned voices are usable self-serve on `simba-3.0`, `simba-english` and `simba-multilingual`. `simba-3.2` also serves cloned voices, currently as a limited release enabled per workspace; contact Speechify to have it enabled for yours.
+The clone belongs to the workspace rather than the member who created it, and access follows the caller's workspace role and API-key scopes exactly as for any other voice: voices scopes to list it, audio scopes to synthesize with it, and the content-management permission plus a write scope on the key to delete it. Cloned voices are usable self-serve on `simba-3.0` (and, on a workspace pinned before API version `2026-09-21`, on the retired `simba-english` and `simba-multilingual` until they are switched off on 2026-11-21). `simba-3.2` also serves cloned voices, currently as a limited release enabled per workspace; contact Speechify to have it enabled for yours.
 
 Callers pinned before `Speechify-Version: 2026-09-13` use the previous flow instead: no challenge, and a `consent` form field carrying the speaker's name and email as a JSON string. That flow is deprecated and will be removed after a sunset window announced in the changelog.
 </dd>

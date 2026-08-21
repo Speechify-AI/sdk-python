@@ -69,6 +69,7 @@ ErrorCode = typing.Union[
         "service_account_limit_reached",
         "service_accounts_not_in_plan",
         "speech_marks_unsupported",
+        "model_retired",
         "too_many_voices",
         "content_policy_violation",
         "topup_not_in_plan",

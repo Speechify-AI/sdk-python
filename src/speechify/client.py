@@ -60,7 +60,7 @@ class Speechify:
     from speechify import Speechify
 
     client = Speechify(
-        "2026-09-13",
+        "2026-09-21",
         token="YOUR_TOKEN",
     )
     """
@@ -70,7 +70,7 @@ class Speechify:
         *,
         base_url: typing.Optional[str] = None,
         environment: SpeechifyEnvironment = SpeechifyEnvironment.DEFAULT,
-        version: typing.Optional[str] = "2026-09-13",
+        version: typing.Optional[str] = "2026-09-21",
         token: typing.Optional[typing.Union[str, typing.Callable[[], str]]] = os.getenv("SPEECHIFY_API_KEY"),
         headers: typing.Optional[typing.Dict[str, str]] = None,
         timeout: typing.Optional[float] = None,
@@ -194,7 +194,7 @@ class AsyncSpeechify:
     from speechify import AsyncSpeechify
 
     client = AsyncSpeechify(
-        "2026-09-13",
+        "2026-09-21",
         token="YOUR_TOKEN",
     )
     """
@@ -204,7 +204,7 @@ class AsyncSpeechify:
         *,
         base_url: typing.Optional[str] = None,
         environment: SpeechifyEnvironment = SpeechifyEnvironment.DEFAULT,
-        version: typing.Optional[str] = "2026-09-13",
+        version: typing.Optional[str] = "2026-09-21",
         token: typing.Optional[typing.Union[str, typing.Callable[[], str]]] = os.getenv("SPEECHIFY_API_KEY"),
         headers: typing.Optional[typing.Dict[str, str]] = None,
         async_token: typing.Optional[typing.Callable[[], typing.Awaitable[str]]] = None,

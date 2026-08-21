@@ -50,7 +50,7 @@ class ModelsClient:
         from speechify import Speechify
 
         client = Speechify(
-            "2026-09-13",
+            "2026-09-21",
             token="YOUR_TOKEN",
         )
         client.models.list()
@@ -103,7 +103,7 @@ class AsyncModelsClient:
         from speechify import AsyncSpeechify
 
         client = AsyncSpeechify(
-            "2026-09-13",
+            "2026-09-21",
             token="YOUR_TOKEN",
         )
 

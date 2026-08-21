@@ -96,7 +96,7 @@ class VoicesClient:
         from speechify import Speechify
 
         client = Speechify(
-            "2026-09-13",
+            "2026-09-21",
             token="YOUR_TOKEN",
         )
         response = client.voices.list(
@@ -137,7 +137,7 @@ class VoicesClient:
 
         Cloning requires proof that the speaker agreed to it. Create a consent challenge with `POST /v1/voices/consent-challenges`, show the returned `phrase` to the speaker, record them reading it aloud, and send that recording here as `consent_recording` together with the challenge's `consent_challenge_id`. Speechify transcribes the recording, checks it against the phrase it issued, checks that its speaker is the speaker in your `sample`, and keeps it as the consent record for the voice. The person consenting therefore has to be the person being cloned. A challenge is single use and short-lived, so record and submit in one sitting.
 
-        The clone belongs to the workspace rather than the member who created it, and access follows the caller's workspace role and API-key scopes exactly as for any other voice: voices scopes to list it, audio scopes to synthesize with it, and the content-management permission plus a write scope on the key to delete it. Cloned voices are usable self-serve on `simba-3.0`, `simba-english` and `simba-multilingual`. `simba-3.2` also serves cloned voices, currently as a limited release enabled per workspace; contact Speechify to have it enabled for yours.
+        The clone belongs to the workspace rather than the member who created it, and access follows the caller's workspace role and API-key scopes exactly as for any other voice: voices scopes to list it, audio scopes to synthesize with it, and the content-management permission plus a write scope on the key to delete it. Cloned voices are usable self-serve on `simba-3.0` (and, on a workspace pinned before API version `2026-09-21`, on the retired `simba-english` and `simba-multilingual` until they are switched off on 2026-11-21). `simba-3.2` also serves cloned voices, currently as a limited release enabled per workspace; contact Speechify to have it enabled for yours.
 
         Callers pinned before `Speechify-Version: 2026-09-13` use the previous flow instead: no challenge, and a `consent` form field carrying the speaker's name and email as a JSON string. That flow is deprecated and will be removed after a sunset window announced in the changelog.
 
@@ -191,7 +191,7 @@ class VoicesClient:
         from speechify import Speechify
 
         client = Speechify(
-            "2026-09-13",
+            "2026-09-21",
             token="YOUR_TOKEN",
         )
         client.voices.create(
@@ -239,7 +239,7 @@ class VoicesClient:
         from speechify import Speechify
 
         client = Speechify(
-            "2026-09-13",
+            "2026-09-21",
             token="YOUR_TOKEN",
         )
         client.voices.get(
@@ -272,7 +272,7 @@ class VoicesClient:
         from speechify import Speechify
 
         client = Speechify(
-            "2026-09-13",
+            "2026-09-21",
             token="YOUR_TOKEN",
         )
         client.voices.delete(
@@ -306,7 +306,7 @@ class VoicesClient:
         from speechify import Speechify
 
         client = Speechify(
-            "2026-09-13",
+            "2026-09-21",
             token="YOUR_TOKEN",
         )
         client.voices.download_sample(
@@ -402,7 +402,7 @@ class AsyncVoicesClient:
         from speechify import AsyncSpeechify
 
         client = AsyncSpeechify(
-            "2026-09-13",
+            "2026-09-21",
             token="YOUR_TOKEN",
         )
 
@@ -450,7 +450,7 @@ class AsyncVoicesClient:
 
         Cloning requires proof that the speaker agreed to it. Create a consent challenge with `POST /v1/voices/consent-challenges`, show the returned `phrase` to the speaker, record them reading it aloud, and send that recording here as `consent_recording` together with the challenge's `consent_challenge_id`. Speechify transcribes the recording, checks it against the phrase it issued, checks that its speaker is the speaker in your `sample`, and keeps it as the consent record for the voice. The person consenting therefore has to be the person being cloned. A challenge is single use and short-lived, so record and submit in one sitting.
 
-        The clone belongs to the workspace rather than the member who created it, and access follows the caller's workspace role and API-key scopes exactly as for any other voice: voices scopes to list it, audio scopes to synthesize with it, and the content-management permission plus a write scope on the key to delete it. Cloned voices are usable self-serve on `simba-3.0`, `simba-english` and `simba-multilingual`. `simba-3.2` also serves cloned voices, currently as a limited release enabled per workspace; contact Speechify to have it enabled for yours.
+        The clone belongs to the workspace rather than the member who created it, and access follows the caller's workspace role and API-key scopes exactly as for any other voice: voices scopes to list it, audio scopes to synthesize with it, and the content-management permission plus a write scope on the key to delete it. Cloned voices are usable self-serve on `simba-3.0` (and, on a workspace pinned before API version `2026-09-21`, on the retired `simba-english` and `simba-multilingual` until they are switched off on 2026-11-21). `simba-3.2` also serves cloned voices, currently as a limited release enabled per workspace; contact Speechify to have it enabled for yours.
 
         Callers pinned before `Speechify-Version: 2026-09-13` use the previous flow instead: no challenge, and a `consent` form field carrying the speaker's name and email as a JSON string. That flow is deprecated and will be removed after a sunset window announced in the changelog.
 
@@ -506,7 +506,7 @@ class AsyncVoicesClient:
         from speechify import AsyncSpeechify
 
         client = AsyncSpeechify(
-            "2026-09-13",
+            "2026-09-21",
             token="YOUR_TOKEN",
         )
 
@@ -562,7 +562,7 @@ class AsyncVoicesClient:
         from speechify import AsyncSpeechify
 
         client = AsyncSpeechify(
-            "2026-09-13",
+            "2026-09-21",
             token="YOUR_TOKEN",
         )
 
@@ -603,7 +603,7 @@ class AsyncVoicesClient:
         from speechify import AsyncSpeechify
 
         client = AsyncSpeechify(
-            "2026-09-13",
+            "2026-09-21",
             token="YOUR_TOKEN",
         )
 
@@ -645,7 +645,7 @@ class AsyncVoicesClient:
         from speechify import AsyncSpeechify
 
         client = AsyncSpeechify(
-            "2026-09-13",
+            "2026-09-21",
             token="YOUR_TOKEN",
         )
 
