@@ -76,6 +76,7 @@ ErrorCode = typing.Union[
         "tool_config_shared",
         "spend_cap_exceeded",
         "spend_budget_exceeded",
+        "project_spend_limit_exceeded",
         "share_link_not_found",
         "share_link_exhausted",
         "share_link_limit_reached",
