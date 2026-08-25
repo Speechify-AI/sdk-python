@@ -47,6 +47,7 @@ class VoicesClient:
         locale: typing.Optional[str] = None,
         gender: typing.Optional[ListVoicesRequestGender] = None,
         model: typing.Optional[str] = None,
+        project_id: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SyncPager[GetVoice, ListVoicesResponse]:
         """
@@ -83,6 +84,21 @@ class VoicesClient:
             Filter to voices that support this model (as listed in each voice's
             `models[]`), e.g. `simba-3.2`. Omit to return voices for all models.
 
+        project_id : typing.Optional[str]
+            Filter cloned voices by workspace project: omit for every voice you
+            can reach, or pass a `proj_...` id to list the clones filed under
+            that project. The shared catalog carries no project and is returned
+            either way.
+
+            A clone is filed under a project when a project-pinned key created
+            it; a clone with no project belongs to the workspace at large, so
+            there is no `default` literal here - passing one is a 400. Returns
+            404 project_not_found for a malformed id and for any project outside
+            your reach: a project-pinned key reaches only its pinned project,
+            and a member holding project grants reaches only the granted ones.
+            That 404 is the same in every case and does not reveal whether such
+            a project exists.
+
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -102,6 +118,7 @@ class VoicesClient:
         response = client.voices.list(
             locale="en",
             model="simba-3.2",
+            project_id="proj_01arz3ndektsv4rrffq69g5fav",
         )
         for item in response:
             yield item
@@ -116,6 +133,7 @@ class VoicesClient:
             locale=locale,
             gender=gender,
             model=model,
+            project_id=project_id,
             request_options=request_options,
         )
 
@@ -351,6 +369,7 @@ class AsyncVoicesClient:
         locale: typing.Optional[str] = None,
         gender: typing.Optional[ListVoicesRequestGender] = None,
         model: typing.Optional[str] = None,
+        project_id: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncPager[GetVoice, ListVoicesResponse]:
         """
@@ -387,6 +406,21 @@ class AsyncVoicesClient:
             Filter to voices that support this model (as listed in each voice's
             `models[]`), e.g. `simba-3.2`. Omit to return voices for all models.
 
+        project_id : typing.Optional[str]
+            Filter cloned voices by workspace project: omit for every voice you
+            can reach, or pass a `proj_...` id to list the clones filed under
+            that project. The shared catalog carries no project and is returned
+            either way.
+
+            A clone is filed under a project when a project-pinned key created
+            it; a clone with no project belongs to the workspace at large, so
+            there is no `default` literal here - passing one is a 400. Returns
+            404 project_not_found for a malformed id and for any project outside
+            your reach: a project-pinned key reaches only its pinned project,
+            and a member holding project grants reaches only the granted ones.
+            That 404 is the same in every case and does not reveal whether such
+            a project exists.
+
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -411,6 +445,7 @@ class AsyncVoicesClient:
             response = await client.voices.list(
                 locale="en",
                 model="simba-3.2",
+                project_id="proj_01arz3ndektsv4rrffq69g5fav",
             )
             async for item in response:
                 yield item
@@ -429,6 +464,7 @@ class AsyncVoicesClient:
             locale=locale,
             gender=gender,
             model=model,
+            project_id=project_id,
             request_options=request_options,
         )
 

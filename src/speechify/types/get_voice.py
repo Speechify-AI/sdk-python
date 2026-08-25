@@ -17,6 +17,18 @@ class GetVoice(UniversalBaseModel):
     id: str
     models: typing.List[GetVoicesModel]
     preview_audio: typing.Optional[str] = None
+    project_id: typing.Optional[str] = pydantic.Field(default=None)
+    """
+    The workspace project this cloned voice is filed under, set when
+    a project-pinned key created it. Returned on a single-voice read,
+    on the create response, and on a list narrowed with the
+    `project_id` parameter.
+    
+    Omitted for a shared-catalog voice, for a cloned voice the
+    workspace holds at large, and on an unnarrowed list, where the
+    catalog read does not carry each voice's project.
+    """
+
     tags: typing.Optional[typing.List[str]] = None
     type: GetVoiceType
 
