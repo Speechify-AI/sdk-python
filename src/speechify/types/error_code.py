@@ -80,6 +80,7 @@ ErrorCode = typing.Union[
         "spend_budget_exceeded",
         "project_spend_limit_exceeded",
         "project_archived",
+        "project_not_archived",
         "share_link_not_found",
         "share_link_exhausted",
         "share_link_limit_reached",
