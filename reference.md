@@ -436,13 +436,20 @@ client.models.list()
 <dd>
 
 Lists the voices available to the caller - the shared voice
-catalog plus the workspace's cloned voices, whichever member or
-service-account key created them. By default
+catalog plus the cloned voices they can reach, whichever member or
+service-account key created them. A clone filed under a project is
+listed only for a caller who can reach that project; a clone no
+project filed is shared with the whole workspace and is listed for
+everyone in it. By default
 the full catalogue is returned in one response. Pagination is
 opt-in: pass `limit` (and then `cursor` from the previous
 response) to page through the list while `has_more` is true. Max
 page size is 200. Narrow the list with the `type` and `locale`
-filters (applied before pagination, so pages stay full).
+filters.
+
+A page can come back with fewer than `limit` voices, and a short
+page - an empty one included - is not the end of the list. Keep
+following `next_cursor` while `has_more` is true.
 </dd>
 </dl>
 </dd>
@@ -546,18 +553,19 @@ Filter to voices that support this model (as listed in each voice's
 **project_id:** `typing.Optional[str]` 
 
 Filter cloned voices by workspace project: omit for every voice you
-can reach, or pass a `proj_...` id to list the clones filed under
-that project. The shared catalog carries no project and is returned
-either way.
+can reach, pass the literal `shared` for the clones no project
+filed, or a `proj_...` id for the clones filed under that project.
+The shared catalog carries no project and is returned either way.
 
 A clone is filed under a project when a project-pinned key created
-it; a clone with no project belongs to the workspace at large, so
-there is no `default` literal here - passing one is a 400. Returns
-404 project_not_found for a malformed id and for any project outside
+it. A clone with no project is shared with the whole workspace
+rather than sitting in a Default project, so the literal here is
+`shared`, never `default` - passing `default` is a 400. Returns 404
+project_not_found for a malformed id and for any project outside
 your reach: a project-pinned key reaches only its pinned project,
 and a member holding project grants reaches only the granted ones.
 That 404 is the same in every case and does not reveal whether such
-a project exists.
+a project exists. `shared` is always inside your reach.
     
 </dd>
 </dl>
