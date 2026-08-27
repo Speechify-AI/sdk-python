@@ -95,7 +95,7 @@ class AudioClient:
         from speechify import Speechify
 
         client = Speechify(
-            "2026-09-21",
+            "2026-09-27",
             token="YOUR_TOKEN",
         )
         client.audio.speech(
@@ -188,7 +188,7 @@ class AudioClient:
         from speechify import Speechify
 
         client = Speechify(
-            "2026-09-21",
+            "2026-09-27",
             token="YOUR_TOKEN",
         )
         client.audio.stream(
@@ -302,7 +302,7 @@ class AudioClient:
         from speechify import Speechify
 
         client = Speechify(
-            "2026-09-21",
+            "2026-09-27",
             token="YOUR_TOKEN",
         )
         response = client.audio.stream_with_timestamps(
@@ -402,7 +402,7 @@ class AsyncAudioClient:
         from speechify import AsyncSpeechify
 
         client = AsyncSpeechify(
-            "2026-09-21",
+            "2026-09-27",
             token="YOUR_TOKEN",
         )
 
@@ -503,7 +503,7 @@ class AsyncAudioClient:
         from speechify import AsyncSpeechify
 
         client = AsyncSpeechify(
-            "2026-09-21",
+            "2026-09-27",
             token="YOUR_TOKEN",
         )
 
@@ -626,7 +626,7 @@ class AsyncAudioClient:
         from speechify import AsyncSpeechify
 
         client = AsyncSpeechify(
-            "2026-09-21",
+            "2026-09-27",
             token="YOUR_TOKEN",
         )
 
