@@ -38,6 +38,7 @@ if typing.TYPE_CHECKING:
         SpeechStreamEvent_SpeechChunk,
         SpeechStreamEvent_SpeechDone,
         SpeechStreamEvent_SpeechError,
+        WatermarkDetectionResponse,
     )
     from .errors import (
         BadGatewayError,
@@ -121,6 +122,7 @@ _dynamic_imports: typing.Dict[str, str] = {
     "TooManyRequestsError": ".errors",
     "UnauthorizedError": ".errors",
     "UnprocessableEntityError": ".errors",
+    "WatermarkDetectionResponse": ".types",
     "__version__": ".version",
     "audio": ".audio",
     "models": ".models",
@@ -205,6 +207,7 @@ __all__ = [
     "TooManyRequestsError",
     "UnauthorizedError",
     "UnprocessableEntityError",
+    "WatermarkDetectionResponse",
     "__version__",
     "audio",
     "models",

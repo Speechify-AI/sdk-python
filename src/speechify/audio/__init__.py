@@ -12,11 +12,13 @@ if typing.TYPE_CHECKING:
         StreamAudioRequestAccept,
         StreamWithTimestampsAudioRequestAccept,
     )
+    from . import watermark
 _dynamic_imports: typing.Dict[str, str] = {
     "GetSpeechRequestAudioFormat": ".types",
     "GetSpeechRequestModel": ".types",
     "StreamAudioRequestAccept": ".types",
     "StreamWithTimestampsAudioRequestAccept": ".types",
+    "watermark": ".watermark",
 }
 
 
@@ -46,4 +48,5 @@ __all__ = [
     "GetSpeechRequestModel",
     "StreamAudioRequestAccept",
     "StreamWithTimestampsAudioRequestAccept",
+    "watermark",
 ]

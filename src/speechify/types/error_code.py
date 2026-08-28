@@ -66,6 +66,8 @@ ErrorCode = typing.Union[
         "consent_speaker_mismatch",
         "consent_recording_unusable",
         "consent_verification_unavailable",
+        "watermark_audio_unusable",
+        "watermark_detection_unavailable",
         "workspace_last_owner",
         "workspace_last_workspace",
         "account_deletion_blocked",

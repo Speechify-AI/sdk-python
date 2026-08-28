@@ -973,6 +973,98 @@ client.voices.download_sample(
 </dl>
 </details>
 
+## Audio Watermark
+<details><summary><code>client.audio.watermark.<a href="src/speechify/audio/watermark/client.py">detect</a>(...) -> WatermarkDetectionResponse</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+Check whether a clip carries the watermark Speechify seals into audio it
+generates. Upload the audio as `audio`; nothing about it is stored, and
+no voice is read or written.
+
+Read the answer carefully in one direction. A `watermarked: true` is
+positive evidence that the audio came from Speechify synthesis. A
+`watermarked: false` is NOT proof that it did not: only models
+redeployed since the watermark shipped mark their output, the detector
+needs at least three seconds of clear speech to judge, and re-encoding
+or changing the speed of a clip degrades the mark. Treat a negative as
+the absence of evidence rather than as evidence of absence.
+
+Checks are rate-limited well below the synthesis budget: this is a
+forensic question, not a data-plane call.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```python
+from speechify import Speechify
+from speechify.environment import SpeechifyEnvironment
+
+client = Speechify(
+    token="<token>",
+    environment=SpeechifyEnvironment.DEFAULT,
+)
+
+client.audio.watermark.detect(
+    audio="example_audio",
+)
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**audio:** `core.File` 
+
+The clip to check, at most 25MB. Give the detector at least
+three seconds of clear speech; below that its confidence is
+not worth acting on, and below half a second it always
+reports zero.
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**request_options:** `typing.Optional[RequestOptions]` — Request-specific configuration.
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
 ## Voices ConsentChallenges
 <details><summary><code>client.voices.consent_challenges.<a href="src/speechify/voices/consent_challenges/client.py">create</a>(...) -> ConsentChallenge</code></summary>
 <dl>
