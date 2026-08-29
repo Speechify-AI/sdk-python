@@ -20,6 +20,7 @@ from ...errors.unauthorized_error import UnauthorizedError
 from ...errors.unprocessable_entity_error import UnprocessableEntityError
 from ...types.error import Error
 from ...types.watermark_detection_response import WatermarkDetectionResponse
+from ...types.watermark_verification_response import WatermarkVerificationResponse
 from pydantic import ValidationError
 
 # this is used as the default value for optional parameters
@@ -180,6 +181,148 @@ class RawWatermarkClient:
             )
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
+    def verify(
+        self, *, audio: core.File, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[WatermarkVerificationResponse]:
+        """
+        The public AI detection tool. Ask whether a clip carries the watermark
+        Speechify seals into audio it generates, with no account, no API key and
+        no credential of any kind.
+
+        `verify` answers; `detect` measures. This route returns a bare yes or no,
+        the way verifying a signature does. Its sibling
+        `POST /v1/audio/watermark/detect` takes an API key and returns the
+        detector's confidence alongside the verdict.
+
+        This is the programmatic half of the tool published at
+        <https://speechify.ai/detect>, and it exists so the tool can be invoked
+        without visiting our website, as California's AI Transparency Act
+        (BPC 22757.2) requires. Nothing about the clip is stored, and nothing
+        identifying about you is collected or retained.
+
+        The answer is a bare verdict. `watermarked: true` is positive evidence
+        that the audio came from Speechify synthesis. `watermarked: false` is
+        NOT proof that it did not: only models redeployed since the watermark
+        shipped mark their output, the detector needs at least three seconds of
+        clear speech to judge, and re-encoding or changing the speed of a clip
+        degrades the mark. Treat a negative as the absence of evidence rather
+        than as evidence of absence.
+
+        Because the tool takes no credential, it is rate-limited per client
+        address and shares a platform-wide budget: expect a 429 under sustained
+        automated use, and retry after the interval the response advertises.
+        Use `POST /v1/audio/watermark/detect` with an API key for the detector's
+        confidence score and a per-workspace allowance of its own.
+
+        Parameters
+        ----------
+        audio : core.File
+            See core.File for more documentation
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[WatermarkVerificationResponse]
+            The clip was checked.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "v1/audio/watermark/verify",
+            method="POST",
+            data={},
+            files={
+                "audio": audio,
+            },
+            request_options=request_options,
+            omit=OMIT,
+            force_multipart=True,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    WatermarkVerificationResponse,
+                    parse_obj_as(
+                        type_=WatermarkVerificationResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        Error,
+                        parse_obj_as(
+                            type_=Error,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        Error,
+                        parse_obj_as(
+                            type_=Error,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        Error,
+                        parse_obj_as(
+                            type_=Error,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        Error,
+                        parse_obj_as(
+                            type_=Error,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 502:
+                raise BadGatewayError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        Error,
+                        parse_obj_as(
+                            type_=Error,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        except ValidationError as e:
+            raise ParsingError(
+                status_code=_response.status_code, headers=dict(_response.headers), body=_response.json(), cause=e
+            )
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
 
 class AsyncRawWatermarkClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
@@ -267,6 +410,148 @@ class AsyncRawWatermarkClient:
                         Error,
                         parse_obj_as(
                             type_=Error,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        Error,
+                        parse_obj_as(
+                            type_=Error,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        Error,
+                        parse_obj_as(
+                            type_=Error,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        Error,
+                        parse_obj_as(
+                            type_=Error,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        Error,
+                        parse_obj_as(
+                            type_=Error,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 502:
+                raise BadGatewayError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        Error,
+                        parse_obj_as(
+                            type_=Error,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        except ValidationError as e:
+            raise ParsingError(
+                status_code=_response.status_code, headers=dict(_response.headers), body=_response.json(), cause=e
+            )
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def verify(
+        self, *, audio: core.File, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[WatermarkVerificationResponse]:
+        """
+        The public AI detection tool. Ask whether a clip carries the watermark
+        Speechify seals into audio it generates, with no account, no API key and
+        no credential of any kind.
+
+        `verify` answers; `detect` measures. This route returns a bare yes or no,
+        the way verifying a signature does. Its sibling
+        `POST /v1/audio/watermark/detect` takes an API key and returns the
+        detector's confidence alongside the verdict.
+
+        This is the programmatic half of the tool published at
+        <https://speechify.ai/detect>, and it exists so the tool can be invoked
+        without visiting our website, as California's AI Transparency Act
+        (BPC 22757.2) requires. Nothing about the clip is stored, and nothing
+        identifying about you is collected or retained.
+
+        The answer is a bare verdict. `watermarked: true` is positive evidence
+        that the audio came from Speechify synthesis. `watermarked: false` is
+        NOT proof that it did not: only models redeployed since the watermark
+        shipped mark their output, the detector needs at least three seconds of
+        clear speech to judge, and re-encoding or changing the speed of a clip
+        degrades the mark. Treat a negative as the absence of evidence rather
+        than as evidence of absence.
+
+        Because the tool takes no credential, it is rate-limited per client
+        address and shares a platform-wide budget: expect a 429 under sustained
+        automated use, and retry after the interval the response advertises.
+        Use `POST /v1/audio/watermark/detect` with an API key for the detector's
+        confidence score and a per-workspace allowance of its own.
+
+        Parameters
+        ----------
+        audio : core.File
+            See core.File for more documentation
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[WatermarkVerificationResponse]
+            The clip was checked.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "v1/audio/watermark/verify",
+            method="POST",
+            data={},
+            files={
+                "audio": audio,
+            },
+            request_options=request_options,
+            omit=OMIT,
+            force_multipart=True,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    WatermarkVerificationResponse,
+                    parse_obj_as(
+                        type_=WatermarkVerificationResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),

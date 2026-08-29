@@ -39,6 +39,7 @@ if typing.TYPE_CHECKING:
         SpeechStreamEvent_SpeechDone,
         SpeechStreamEvent_SpeechError,
         WatermarkDetectionResponse,
+        WatermarkVerificationResponse,
     )
     from .errors import (
         BadGatewayError,
@@ -123,6 +124,7 @@ _dynamic_imports: typing.Dict[str, str] = {
     "UnauthorizedError": ".errors",
     "UnprocessableEntityError": ".errors",
     "WatermarkDetectionResponse": ".types",
+    "WatermarkVerificationResponse": ".types",
     "__version__": ".version",
     "audio": ".audio",
     "models": ".models",
@@ -208,6 +210,7 @@ __all__ = [
     "UnauthorizedError",
     "UnprocessableEntityError",
     "WatermarkDetectionResponse",
+    "WatermarkVerificationResponse",
     "__version__",
     "audio",
     "models",

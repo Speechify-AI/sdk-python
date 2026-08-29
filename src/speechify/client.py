@@ -6,7 +6,6 @@ import os
 import typing
 
 import httpx
-from .core.api_error import ApiError
 from .core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from .core.logging import LogConfig, Logger
 from .environment import SpeechifyEnvironment
@@ -83,10 +82,6 @@ class Speechify:
             timeout if timeout is not None else 60 if httpx_client is None else httpx_client.timeout.read
         )
         _defaulted_max_retries = max_retries if max_retries is not None else 2
-        if token is None:
-            raise ApiError(
-                body="The client must be instantiated be either passing in token or setting SPEECHIFY_API_KEY"
-            )
         self._client_wrapper = SyncClientWrapper(
             base_url=_get_base_url(base_url=base_url, environment=environment),
             version=version,
@@ -218,10 +213,6 @@ class AsyncSpeechify:
             timeout if timeout is not None else 60 if httpx_client is None else httpx_client.timeout.read
         )
         _defaulted_max_retries = max_retries if max_retries is not None else 2
-        if token is None:
-            raise ApiError(
-                body="The client must be instantiated be either passing in token or setting SPEECHIFY_API_KEY"
-            )
         self._client_wrapper = AsyncClientWrapper(
             base_url=_get_base_url(base_url=base_url, environment=environment),
             version=version,

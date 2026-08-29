@@ -1065,6 +1065,110 @@ reports zero.
 </dl>
 </details>
 
+<details><summary><code>client.audio.watermark.<a href="src/speechify/audio/watermark/client.py">verify</a>(...) -> WatermarkVerificationResponse</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+The public AI detection tool. Ask whether a clip carries the watermark
+Speechify seals into audio it generates, with no account, no API key and
+no credential of any kind.
+
+`verify` answers; `detect` measures. This route returns a bare yes or no,
+the way verifying a signature does. Its sibling
+`POST /v1/audio/watermark/detect` takes an API key and returns the
+detector's confidence alongside the verdict.
+
+This is the programmatic half of the tool published at
+<https://speechify.ai/detect>, and it exists so the tool can be invoked
+without visiting our website, as California's AI Transparency Act
+(BPC 22757.2) requires. Nothing about the clip is stored, and nothing
+identifying about you is collected or retained.
+
+The answer is a bare verdict. `watermarked: true` is positive evidence
+that the audio came from Speechify synthesis. `watermarked: false` is
+NOT proof that it did not: only models redeployed since the watermark
+shipped mark their output, the detector needs at least three seconds of
+clear speech to judge, and re-encoding or changing the speed of a clip
+degrades the mark. Treat a negative as the absence of evidence rather
+than as evidence of absence.
+
+Because the tool takes no credential, it is rate-limited per client
+address and shares a platform-wide budget: expect a 429 under sustained
+automated use, and retry after the interval the response advertises.
+Use `POST /v1/audio/watermark/detect` with an API key for the detector's
+confidence score and a per-workspace allowance of its own.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```python
+from speechify import Speechify
+from speechify.environment import SpeechifyEnvironment
+
+client = Speechify(
+    token="<token>",
+    environment=SpeechifyEnvironment.DEFAULT,
+)
+
+client.audio.watermark.verify(
+    audio="example_audio",
+)
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**audio:** `core.File` 
+
+The clip to check, at most 25MB. Give the detector at least
+three seconds of clear speech; below that its answer is not
+worth acting on.
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**request_options:** `typing.Optional[RequestOptions]` — Request-specific configuration.
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
 ## Voices ConsentChallenges
 <details><summary><code>client.voices.consent_challenges.<a href="src/speechify/voices/consent_challenges/client.py">create</a>(...) -> ConsentChallenge</code></summary>
 <dl>

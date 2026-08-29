@@ -40,6 +40,7 @@ if typing.TYPE_CHECKING:
         SpeechStreamEvent_SpeechError,
     )
     from .watermark_detection_response import WatermarkDetectionResponse
+    from .watermark_verification_response import WatermarkVerificationResponse
 _dynamic_imports: typing.Dict[str, str] = {
     "AudioOutputFormat": ".audio_output_format",
     "AudioStreamOutputFormat": ".audio_stream_output_format",
@@ -73,6 +74,7 @@ _dynamic_imports: typing.Dict[str, str] = {
     "SpeechStreamEvent_SpeechDone": ".speech_stream_event",
     "SpeechStreamEvent_SpeechError": ".speech_stream_event",
     "WatermarkDetectionResponse": ".watermark_detection_response",
+    "WatermarkVerificationResponse": ".watermark_verification_response",
 }
 
 
@@ -130,4 +132,5 @@ __all__ = [
     "SpeechStreamEvent_SpeechDone",
     "SpeechStreamEvent_SpeechError",
     "WatermarkDetectionResponse",
+    "WatermarkVerificationResponse",
 ]
