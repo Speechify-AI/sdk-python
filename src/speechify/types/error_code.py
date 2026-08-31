@@ -54,6 +54,8 @@ ErrorCode = typing.Union[
         "thread_not_found",
         "call_not_active",
         "relay_displaces_agent",
+        "brain_not_found",
+        "brain_in_use",
         "insufficient_scope",
         "purchased_numbers_not_included",
         "phone_number_quota_reached",
