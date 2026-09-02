@@ -120,7 +120,7 @@ class VoicesClient:
         from speechify import Speechify
 
         client = Speechify(
-            "2026-09-27",
+            "2026-09-28",
             token="YOUR_TOKEN",
         )
         response = client.voices.list(
@@ -217,7 +217,7 @@ class VoicesClient:
         from speechify import Speechify
 
         client = Speechify(
-            "2026-09-27",
+            "2026-09-28",
             token="YOUR_TOKEN",
         )
         client.voices.create(
@@ -265,7 +265,7 @@ class VoicesClient:
         from speechify import Speechify
 
         client = Speechify(
-            "2026-09-27",
+            "2026-09-28",
             token="YOUR_TOKEN",
         )
         client.voices.get(
@@ -298,7 +298,7 @@ class VoicesClient:
         from speechify import Speechify
 
         client = Speechify(
-            "2026-09-27",
+            "2026-09-28",
             token="YOUR_TOKEN",
         )
         client.voices.delete(
@@ -332,7 +332,7 @@ class VoicesClient:
         from speechify import Speechify
 
         client = Speechify(
-            "2026-09-27",
+            "2026-09-28",
             token="YOUR_TOKEN",
         )
         client.voices.download_sample(
@@ -452,7 +452,7 @@ class AsyncVoicesClient:
         from speechify import AsyncSpeechify
 
         client = AsyncSpeechify(
-            "2026-09-27",
+            "2026-09-28",
             token="YOUR_TOKEN",
         )
 
@@ -558,7 +558,7 @@ class AsyncVoicesClient:
         from speechify import AsyncSpeechify
 
         client = AsyncSpeechify(
-            "2026-09-27",
+            "2026-09-28",
             token="YOUR_TOKEN",
         )
 
@@ -614,7 +614,7 @@ class AsyncVoicesClient:
         from speechify import AsyncSpeechify
 
         client = AsyncSpeechify(
-            "2026-09-27",
+            "2026-09-28",
             token="YOUR_TOKEN",
         )
 
@@ -655,7 +655,7 @@ class AsyncVoicesClient:
         from speechify import AsyncSpeechify
 
         client = AsyncSpeechify(
-            "2026-09-27",
+            "2026-09-28",
             token="YOUR_TOKEN",
         )
 
@@ -697,7 +697,7 @@ class AsyncVoicesClient:
         from speechify import AsyncSpeechify
 
         client = AsyncSpeechify(
-            "2026-09-27",
+            "2026-09-28",
             token="YOUR_TOKEN",
         )
 

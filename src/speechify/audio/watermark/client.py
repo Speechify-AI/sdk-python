@@ -65,7 +65,7 @@ class WatermarkClient:
         from speechify import Speechify
 
         client = Speechify(
-            "2026-09-27",
+            "2026-09-28",
             token="YOUR_TOKEN",
         )
         client.audio.watermark.detect()
@@ -124,7 +124,7 @@ class WatermarkClient:
         from speechify import Speechify
 
         client = Speechify(
-            "2026-09-27",
+            "2026-09-28",
             token="YOUR_TOKEN",
         )
         client.audio.watermark.verify()
@@ -187,7 +187,7 @@ class AsyncWatermarkClient:
         from speechify import AsyncSpeechify
 
         client = AsyncSpeechify(
-            "2026-09-27",
+            "2026-09-28",
             token="YOUR_TOKEN",
         )
 
@@ -254,7 +254,7 @@ class AsyncWatermarkClient:
         from speechify import AsyncSpeechify
 
         client = AsyncSpeechify(
-            "2026-09-27",
+            "2026-09-28",
             token="YOUR_TOKEN",
         )
 
