@@ -126,6 +126,7 @@ ErrorCode = typing.Union[
         "agent_publish_gate_failed",
         "agent_publish_gate_required",
         "text_channel_not_in_plan",
+        "channel_not_in_plan",
         "text_turn_failed",
         "text_message_quota_exceeded",
         "durable_runs_not_in_plan",
