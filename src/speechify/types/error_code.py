@@ -125,6 +125,7 @@ ErrorCode = typing.Union[
         "funded_balance_required",
         "agent_publish_gate_failed",
         "agent_publish_gate_required",
+        "agent_publish_gate_unavailable",
         "text_channel_not_in_plan",
         "channel_not_in_plan",
         "text_turn_failed",
