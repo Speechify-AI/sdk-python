@@ -9,7 +9,7 @@
     },
     "pyproject_python_version": ">=3.9"
   },
-  "originGitCommit": "36a8adf176b2ce305d060329788857554b8ec803",
+  "originGitCommit": "c6e8a758261a9e8817a22ea8ecead3bee1321dc7",
   "originGitCommitIsDirty": false,
   "invokedBy": "ci",
   "ciProvider": "github",
