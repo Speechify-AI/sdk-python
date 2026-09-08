@@ -40,7 +40,6 @@ ErrorCode = typing.Union[
         "trigger_not_found",
         "store_not_found",
         "store_document_not_found",
-        "store_asset_not_found",
         "hosted_api_not_found",
         "api_route_not_found",
         "consumer_key_not_found",
