@@ -46,6 +46,7 @@ ErrorCode = typing.Union[
         "consumer_key_not_found",
         "skill_not_found",
         "skill_version_not_found",
+        "file_not_found",
         "store_limit_reached",
         "store_document_limit_reached",
         "store_bytes_limit_reached",
