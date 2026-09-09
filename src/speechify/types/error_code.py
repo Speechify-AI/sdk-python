@@ -135,6 +135,7 @@ ErrorCode = typing.Union[
         "text_message_quota_exceeded",
         "durable_runs_not_in_plan",
         "tool_transport_unsupported",
+        "agent_config_too_large",
         "agent_run_not_pending",
         "agent_run_action_stale",
         "share_link_not_found",
