@@ -35,6 +35,7 @@ ErrorCode = typing.Union[
         "kb_document_not_found",
         "kb_folder_not_found",
         "tool_not_found",
+        "tool_name_taken",
         "channel_instance_not_found",
         "team_not_found",
         "trigger_not_found",
