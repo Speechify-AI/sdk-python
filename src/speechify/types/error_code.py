@@ -78,6 +78,7 @@ ErrorCode = typing.Union[
         "project_not_found",
         "cross_project_reference",
         "project_has_scoped_credentials",
+        "project_not_empty",
         "project_limit_reached",
         "agent_limit_reached",
         "project_too_large_to_promote",
