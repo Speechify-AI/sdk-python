@@ -135,6 +135,7 @@ ErrorCode = typing.Union[
         "text_channel_not_in_plan",
         "channel_not_in_plan",
         "text_turn_failed",
+        "conversation_turn_in_progress",
         "text_message_quota_exceeded",
         "durable_runs_not_in_plan",
         "tool_transport_unsupported",
