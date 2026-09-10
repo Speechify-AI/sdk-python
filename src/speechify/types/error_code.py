@@ -68,6 +68,8 @@ ErrorCode = typing.Union[
         "route_run_failed",
         "route_run_limit_reached",
         "route_read_limit_reached",
+        "route_write_limit_reached",
+        "hosted_api_public_refused",
         "conversation_not_found",
         "phone_number_not_found",
         "sip_trunk_not_found",
