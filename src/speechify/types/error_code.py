@@ -53,6 +53,8 @@ ErrorCode = typing.Union[
         "store_document_limit_reached",
         "store_bytes_limit_reached",
         "store_not_configured",
+        "store_document_version_conflict",
+        "store_document_deleted",
         "hosted_apis_not_in_plan",
         "skills_not_in_plan",
         "skill_in_use",
