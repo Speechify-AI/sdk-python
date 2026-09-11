@@ -57,6 +57,7 @@ ErrorCode = typing.Union[
         "store_document_deleted",
         "hosted_apis_not_in_plan",
         "skills_not_in_plan",
+        "voice_agents_not_in_plan",
         "skill_in_use",
         "skill_tool_name_conflict",
         "skill_limit_reached",
