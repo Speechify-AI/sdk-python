@@ -95,6 +95,8 @@ ErrorCode = typing.Union[
         "relay_displaces_agent",
         "brain_not_found",
         "brain_in_use",
+        "custom_model_not_found",
+        "custom_model_in_use",
         "insufficient_scope",
         "purchased_numbers_not_included",
         "phone_number_quota_reached",
