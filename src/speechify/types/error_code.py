@@ -72,6 +72,7 @@ ErrorCode = typing.Union[
         "route_write_limit_reached",
         "hosted_api_public_refused",
         "route_tool_not_readable",
+        "route_tool_unavailable",
         "route_upstream_rate_limited",
         "route_upstream_error",
         "hosted_mcp_not_enabled",
