@@ -64,6 +64,7 @@ ErrorCode = typing.Union[
         "agent_skill_limit_reached",
         "hosted_api_slug_taken",
         "api_route_conflict",
+        "mount_plan_changed",
         "route_output_unavailable",
         "route_run_timeout",
         "route_run_failed",
