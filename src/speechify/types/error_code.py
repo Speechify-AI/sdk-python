@@ -76,6 +76,7 @@ ErrorCode = typing.Union[
         "route_upstream_rate_limited",
         "route_upstream_error",
         "hosted_mcp_not_enabled",
+        "hosted_api_busy",
         "conversation_not_found",
         "phone_number_not_found",
         "sip_trunk_not_found",
