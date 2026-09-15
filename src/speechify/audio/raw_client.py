@@ -313,7 +313,10 @@ class RawAudioClient:
             codec/sample rate; otherwise the Accept header does. The
             Content-Type reflects the selected format: it matches the Accept
             header, except raw PCM returns `audio/L16` (with rate and channels
-            parameters) and u-law returns `audio/basic`.
+            parameters) and u-law returns `audio/basic`. A content policy
+            refusal that lands after the audio has started aborts the
+            transfer, so the client raises instead of completing the body;
+            only a completed transfer was served in full.
         """
         with self._client_wrapper.httpx_client.stream(
             "v1/audio/stream",
@@ -550,9 +553,10 @@ class RawAudioClient:
         ------
         typing.Iterator[HttpResponse[typing.Iterator[SpeechStreamEvent]]]
             A Server-Sent Events stream of `speech.chunk` events followed by one
-            terminal `speech.done` event. A failure after the stream has started
-            is delivered as a `speech.error` event carrying the standard error
-            envelope, because the status code is already committed.
+            terminal `speech.done` event. A failure after the stream has started,
+            including a `content_policy_violation` refusal, is delivered as a
+            `speech.error` event carrying the standard error envelope, because
+            the status code is already committed.
 
             The transport is `text/event-stream`: each event is an
             `event:`/`data:` pair whose `data` is one JSON payload matching the
@@ -1011,7 +1015,10 @@ class AsyncRawAudioClient:
             codec/sample rate; otherwise the Accept header does. The
             Content-Type reflects the selected format: it matches the Accept
             header, except raw PCM returns `audio/L16` (with rate and channels
-            parameters) and u-law returns `audio/basic`.
+            parameters) and u-law returns `audio/basic`. A content policy
+            refusal that lands after the audio has started aborts the
+            transfer, so the client raises instead of completing the body;
+            only a completed transfer was served in full.
         """
         async with self._client_wrapper.httpx_client.stream(
             "v1/audio/stream",
@@ -1249,9 +1256,10 @@ class AsyncRawAudioClient:
         ------
         typing.AsyncIterator[AsyncHttpResponse[typing.AsyncIterator[SpeechStreamEvent]]]
             A Server-Sent Events stream of `speech.chunk` events followed by one
-            terminal `speech.done` event. A failure after the stream has started
-            is delivered as a `speech.error` event carrying the standard error
-            envelope, because the status code is already committed.
+            terminal `speech.done` event. A failure after the stream has started,
+            including a `content_policy_violation` refusal, is delivered as a
+            `speech.error` event carrying the standard error envelope, because
+            the status code is already committed.
 
             The transport is `text/event-stream`: each event is an
             `event:`/`data:` pair whose `data` is one JSON payload matching the
