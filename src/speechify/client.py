@@ -12,6 +12,7 @@ from .environment import SpeechifyEnvironment
 
 if typing.TYPE_CHECKING:
     from .audio.client import AsyncAudioClient, AudioClient
+    from .hosted_apis.client import AsyncHostedApisClient, HostedApisClient
     from .models.client import AsyncModelsClient, ModelsClient
     from .voices.client import AsyncVoicesClient, VoicesClient
 
@@ -99,6 +100,7 @@ class Speechify:
         self._audio: typing.Optional[AudioClient] = None
         self._models: typing.Optional[ModelsClient] = None
         self._voices: typing.Optional[VoicesClient] = None
+        self._hosted_apis: typing.Optional[HostedApisClient] = None
 
     @property
     def audio(self):
@@ -123,6 +125,14 @@ class Speechify:
 
             self._voices = VoicesClient(client_wrapper=self._client_wrapper)
         return self._voices
+
+    @property
+    def hosted_apis(self):
+        if self._hosted_apis is None:
+            from .hosted_apis.client import HostedApisClient  # noqa: E402
+
+            self._hosted_apis = HostedApisClient(client_wrapper=self._client_wrapper)
+        return self._hosted_apis
 
 
 def _make_default_async_client(
@@ -229,6 +239,7 @@ class AsyncSpeechify:
         self._audio: typing.Optional[AsyncAudioClient] = None
         self._models: typing.Optional[AsyncModelsClient] = None
         self._voices: typing.Optional[AsyncVoicesClient] = None
+        self._hosted_apis: typing.Optional[AsyncHostedApisClient] = None
 
     @property
     def audio(self):
@@ -253,6 +264,14 @@ class AsyncSpeechify:
 
             self._voices = AsyncVoicesClient(client_wrapper=self._client_wrapper)
         return self._voices
+
+    @property
+    def hosted_apis(self):
+        if self._hosted_apis is None:
+            from .hosted_apis.client import AsyncHostedApisClient  # noqa: E402
+
+            self._hosted_apis = AsyncHostedApisClient(client_wrapper=self._client_wrapper)
+        return self._hosted_apis
 
 
 def _get_base_url(*, base_url: typing.Optional[str] = None, environment: SpeechifyEnvironment) -> str:
