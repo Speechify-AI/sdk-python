@@ -24,39 +24,11 @@ if typing.TYPE_CHECKING:
     from .get_voice_type import GetVoiceType
     from .get_voices_model import GetVoicesModel
     from .get_voices_model_name import GetVoicesModelName
-    from .hosted_api import HostedApi
-    from .hosted_api_auth_mode import HostedApiAuthMode
-    from .hosted_api_key import HostedApiKey
-    from .hosted_api_mount import HostedApiMount
-    from .hosted_api_mount_operation import HostedApiMountOperation
-    from .hosted_api_mount_operation_action import HostedApiMountOperationAction
-    from .hosted_api_mount_operation_changes_item import HostedApiMountOperationChangesItem
-    from .hosted_api_mount_summary import HostedApiMountSummary
-    from .hosted_api_mount_tool_kind import HostedApiMountToolKind
-    from .hosted_api_resolver import HostedApiResolver
-    from .hosted_api_resolver_order_by import HostedApiResolverOrderBy
-    from .hosted_api_resolver_order_by_direction import HostedApiResolverOrderByDirection
-    from .hosted_api_resolver_type import HostedApiResolverType
-    from .hosted_api_resolver_where_item import HostedApiResolverWhereItem
-    from .hosted_api_resolver_where_item_op import HostedApiResolverWhereItemOp
-    from .hosted_api_resolver_write_mode import HostedApiResolverWriteMode
-    from .hosted_api_route import HostedApiRoute
-    from .hosted_api_route_method import HostedApiRouteMethod
-    from .hosted_api_usage import HostedApiUsage
-    from .hosted_api_usage_routes_item import HostedApiUsageRoutesItem
-    from .hosted_api_user_token_secret import HostedApiUserTokenSecret
-    from .list_hosted_ap_is_response import ListHostedApIsResponse
-    from .list_hosted_api_keys_response import ListHostedApiKeysResponse
-    from .list_hosted_api_routes_response import ListHostedApiRoutesResponse
     from .list_voices_response import ListVoicesResponse
     from .model import Model
     from .models_response import ModelsResponse
     from .nested_chunk import NestedChunk
     from .pagination_meta import PaginationMeta
-    from .request_analytics_bucket import RequestAnalyticsBucket
-    from .request_analytics_response import RequestAnalyticsResponse
-    from .request_analytics_totals import RequestAnalyticsTotals
-    from .request_top_path import RequestTopPath
     from .speech_chunk_event import SpeechChunkEvent
     from .speech_done_event import SpeechDoneEvent
     from .speech_error_event import SpeechErrorEvent
@@ -67,8 +39,6 @@ if typing.TYPE_CHECKING:
         SpeechStreamEvent_SpeechDone,
         SpeechStreamEvent_SpeechError,
     )
-    from .store_aggregate_metric import StoreAggregateMetric
-    from .store_aggregate_metric_op import StoreAggregateMetricOp
     from .watermark_detection_response import WatermarkDetectionResponse
     from .watermark_verification_response import WatermarkVerificationResponse
 _dynamic_imports: typing.Dict[str, str] = {
@@ -90,39 +60,11 @@ _dynamic_imports: typing.Dict[str, str] = {
     "GetVoiceType": ".get_voice_type",
     "GetVoicesModel": ".get_voices_model",
     "GetVoicesModelName": ".get_voices_model_name",
-    "HostedApi": ".hosted_api",
-    "HostedApiAuthMode": ".hosted_api_auth_mode",
-    "HostedApiKey": ".hosted_api_key",
-    "HostedApiMount": ".hosted_api_mount",
-    "HostedApiMountOperation": ".hosted_api_mount_operation",
-    "HostedApiMountOperationAction": ".hosted_api_mount_operation_action",
-    "HostedApiMountOperationChangesItem": ".hosted_api_mount_operation_changes_item",
-    "HostedApiMountSummary": ".hosted_api_mount_summary",
-    "HostedApiMountToolKind": ".hosted_api_mount_tool_kind",
-    "HostedApiResolver": ".hosted_api_resolver",
-    "HostedApiResolverOrderBy": ".hosted_api_resolver_order_by",
-    "HostedApiResolverOrderByDirection": ".hosted_api_resolver_order_by_direction",
-    "HostedApiResolverType": ".hosted_api_resolver_type",
-    "HostedApiResolverWhereItem": ".hosted_api_resolver_where_item",
-    "HostedApiResolverWhereItemOp": ".hosted_api_resolver_where_item_op",
-    "HostedApiResolverWriteMode": ".hosted_api_resolver_write_mode",
-    "HostedApiRoute": ".hosted_api_route",
-    "HostedApiRouteMethod": ".hosted_api_route_method",
-    "HostedApiUsage": ".hosted_api_usage",
-    "HostedApiUsageRoutesItem": ".hosted_api_usage_routes_item",
-    "HostedApiUserTokenSecret": ".hosted_api_user_token_secret",
-    "ListHostedApIsResponse": ".list_hosted_ap_is_response",
-    "ListHostedApiKeysResponse": ".list_hosted_api_keys_response",
-    "ListHostedApiRoutesResponse": ".list_hosted_api_routes_response",
     "ListVoicesResponse": ".list_voices_response",
     "Model": ".model",
     "ModelsResponse": ".models_response",
     "NestedChunk": ".nested_chunk",
     "PaginationMeta": ".pagination_meta",
-    "RequestAnalyticsBucket": ".request_analytics_bucket",
-    "RequestAnalyticsResponse": ".request_analytics_response",
-    "RequestAnalyticsTotals": ".request_analytics_totals",
-    "RequestTopPath": ".request_top_path",
     "SpeechChunkEvent": ".speech_chunk_event",
     "SpeechDoneEvent": ".speech_done_event",
     "SpeechErrorEvent": ".speech_error_event",
@@ -131,8 +73,6 @@ _dynamic_imports: typing.Dict[str, str] = {
     "SpeechStreamEvent_SpeechChunk": ".speech_stream_event",
     "SpeechStreamEvent_SpeechDone": ".speech_stream_event",
     "SpeechStreamEvent_SpeechError": ".speech_stream_event",
-    "StoreAggregateMetric": ".store_aggregate_metric",
-    "StoreAggregateMetricOp": ".store_aggregate_metric_op",
     "WatermarkDetectionResponse": ".watermark_detection_response",
     "WatermarkVerificationResponse": ".watermark_verification_response",
 }
@@ -178,39 +118,11 @@ __all__ = [
     "GetVoiceType",
     "GetVoicesModel",
     "GetVoicesModelName",
-    "HostedApi",
-    "HostedApiAuthMode",
-    "HostedApiKey",
-    "HostedApiMount",
-    "HostedApiMountOperation",
-    "HostedApiMountOperationAction",
-    "HostedApiMountOperationChangesItem",
-    "HostedApiMountSummary",
-    "HostedApiMountToolKind",
-    "HostedApiResolver",
-    "HostedApiResolverOrderBy",
-    "HostedApiResolverOrderByDirection",
-    "HostedApiResolverType",
-    "HostedApiResolverWhereItem",
-    "HostedApiResolverWhereItemOp",
-    "HostedApiResolverWriteMode",
-    "HostedApiRoute",
-    "HostedApiRouteMethod",
-    "HostedApiUsage",
-    "HostedApiUsageRoutesItem",
-    "HostedApiUserTokenSecret",
-    "ListHostedApIsResponse",
-    "ListHostedApiKeysResponse",
-    "ListHostedApiRoutesResponse",
     "ListVoicesResponse",
     "Model",
     "ModelsResponse",
     "NestedChunk",
     "PaginationMeta",
-    "RequestAnalyticsBucket",
-    "RequestAnalyticsResponse",
-    "RequestAnalyticsTotals",
-    "RequestTopPath",
     "SpeechChunkEvent",
     "SpeechDoneEvent",
     "SpeechErrorEvent",
@@ -219,8 +131,6 @@ __all__ = [
     "SpeechStreamEvent_SpeechChunk",
     "SpeechStreamEvent_SpeechDone",
     "SpeechStreamEvent_SpeechError",
-    "StoreAggregateMetric",
-    "StoreAggregateMetricOp",
     "WatermarkDetectionResponse",
     "WatermarkVerificationResponse",
 ]
