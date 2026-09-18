@@ -28,6 +28,16 @@ class GetVoice(UniversalBaseModel):
     listed for every member of it.
     """
 
+    can_manage: typing.Optional[bool] = pydantic.Field(default=None)
+    """
+    Whether this workspace may delete the voice and download its
+    sample through this API. `true` for a cloned voice the workspace
+    owns. `false` for a shared-catalog voice, and for a cloned voice
+    that reaches this workspace only through its creator's personal
+    account (a voice cloned before workspace ownership, or under
+    another Speechify product), which is managed where it was made.
+    """
+
     tags: typing.Optional[typing.List[str]] = None
     type: GetVoiceType
 
