@@ -281,6 +281,10 @@ class VoicesClient:
         `content.manage` permission (owner, admin, or member); a
         service-account key is authorized by its scopes instead.
 
+        A voice that is also a member's personal voice (one cloned
+        before workspaces owned voices and adopted into this workspace)
+        is removed from the workspace only; the person keeps it.
+
         Parameters
         ----------
         voice_id : str
@@ -635,6 +639,10 @@ class AsyncVoicesClient:
         Delete one of the workspace's cloned voices. Requires the
         `content.manage` permission (owner, admin, or member); a
         service-account key is authorized by its scopes instead.
+
+        A voice that is also a member's personal voice (one cloned
+        before workspaces owned voices and adopted into this workspace)
+        is removed from the workspace only; the person keeps it.
 
         Parameters
         ----------
