@@ -55,6 +55,7 @@ ErrorCode = typing.Union[
         "store_not_configured",
         "store_document_version_conflict",
         "store_document_deleted",
+        "entitlement_override_exists",
         "hosted_apis_not_in_plan",
         "skills_not_in_plan",
         "voice_agents_not_in_plan",
