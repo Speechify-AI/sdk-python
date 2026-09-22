@@ -8,7 +8,7 @@ version = "4.0.1"
 description = "Official Speechify API SDK"
 readme = "README.md"
 authors = [
-    "Speechify <support@speechify.com>"
+    "Speechify <developers@speechify.ai>"
 ]
 keywords = [
     "speechify",
