@@ -266,15 +266,16 @@ delivery detail and carries no meaning. Times stay correct for every
 `output_format`: changing the codec or sample rate does not change the
 duration.
 
-Speech marks are produced by the streaming-native models. The default
-`simba-3.0` and `simba-3.2` both serve this route. The legacy
-`simba-english` and `simba-multilingual` models never could: on a
-workspace pinned before API version `2026-09-21` they return 400
-`speech_marks_unsupported` here, and from that version on they return
-400 `model_retired` on every synthesis route. From 2026-11-21 both ids
-are served by our current models, which do serve this route.
+Every model this route accepts produces speech marks here. The default
+`simba-3.0` and `simba-3.2` stream marks word by word alongside the
+audio. The legacy `simba-english` and `simba-multilingual` models,
+still selectable on a workspace pinned before API version `2026-09-21`,
+synthesize a sentence at a time, so their marks arrive a sentence at a
+time with that sentence's audio; from that version on they return 400
+`model_retired` on every synthesis route, and from 2026-11-21 both ids
+are served by our current models.
 For Base64-encoded audio and speech marks in one non-streamed JSON
-response, on any model, use POST /v1/audio/speech.
+response, use POST /v1/audio/speech.
 </dd>
 </dl>
 </dd>

@@ -86,10 +86,9 @@ class Model(UniversalBaseModel):
 
     endpoints: typing.List[str] = pydantic.Field()
     """
-    The synthesis routes this model may be passed to. Only the
-    streaming-native models serve `/v1/audio/stream/with-timestamps`;
-    passing a model this list omits is a 400 rather than a degraded
-    response, so branch on it instead of discovering it at call time.
+    The synthesis routes this model may be passed to. Passing it to a
+    route this list omits is a 400 rather than a degraded response, so
+    branch on it instead of discovering it at call time.
     """
 
     curated_voices: bool = pydantic.Field()
