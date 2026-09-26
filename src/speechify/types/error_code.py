@@ -135,6 +135,7 @@ ErrorCode = typing.Union[
         "content_policy_violation",
         "topup_not_in_plan",
         "credit_purchase_unpaid",
+        "credit_purchase_payment_in_progress",
         "tool_config_shared",
         "spend_cap_exceeded",
         "spend_budget_exceeded",
