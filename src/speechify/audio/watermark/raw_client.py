@@ -15,6 +15,7 @@ from ...errors.bad_request_error import BadRequestError
 from ...errors.content_too_large_error import ContentTooLargeError
 from ...errors.forbidden_error import ForbiddenError
 from ...errors.internal_server_error import InternalServerError
+from ...errors.service_unavailable_error import ServiceUnavailableError
 from ...errors.too_many_requests_error import TooManyRequestsError
 from ...errors.unauthorized_error import UnauthorizedError
 from ...errors.unprocessable_entity_error import UnprocessableEntityError
@@ -314,6 +315,17 @@ class RawWatermarkClient:
                         ),
                     ),
                 )
+            if _response.status_code == 503:
+                raise ServiceUnavailableError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        Error,
+                        parse_obj_as(
+                            type_=Error,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -602,6 +614,17 @@ class AsyncRawWatermarkClient:
                 )
             if _response.status_code == 502:
                 raise BadGatewayError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        Error,
+                        parse_obj_as(
+                            type_=Error,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 503:
+                raise ServiceUnavailableError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         Error,
