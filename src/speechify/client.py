@@ -13,7 +13,10 @@ from .environment import SpeechifyEnvironment
 if typing.TYPE_CHECKING:
     from .audio.client import AsyncAudioClient, AudioClient
     from .models.client import AsyncModelsClient, ModelsClient
+    from .projects.client import AsyncProjectsClient, ProjectsClient
     from .voices.client import AsyncVoicesClient, VoicesClient
+    from .webhooks.client import AsyncWebhooksClient, WebhooksClient
+    from .workspaces.client import AsyncWorkspacesClient, WorkspacesClient
 
 
 class Speechify:
@@ -99,6 +102,9 @@ class Speechify:
         self._audio: typing.Optional[AudioClient] = None
         self._models: typing.Optional[ModelsClient] = None
         self._voices: typing.Optional[VoicesClient] = None
+        self._projects: typing.Optional[ProjectsClient] = None
+        self._workspaces: typing.Optional[WorkspacesClient] = None
+        self._webhooks: typing.Optional[WebhooksClient] = None
 
     @property
     def audio(self):
@@ -123,6 +129,30 @@ class Speechify:
 
             self._voices = VoicesClient(client_wrapper=self._client_wrapper)
         return self._voices
+
+    @property
+    def projects(self):
+        if self._projects is None:
+            from .projects.client import ProjectsClient  # noqa: E402
+
+            self._projects = ProjectsClient(client_wrapper=self._client_wrapper)
+        return self._projects
+
+    @property
+    def workspaces(self):
+        if self._workspaces is None:
+            from .workspaces.client import WorkspacesClient  # noqa: E402
+
+            self._workspaces = WorkspacesClient(client_wrapper=self._client_wrapper)
+        return self._workspaces
+
+    @property
+    def webhooks(self):
+        if self._webhooks is None:
+            from .webhooks.client import WebhooksClient  # noqa: E402
+
+            self._webhooks = WebhooksClient(client_wrapper=self._client_wrapper)
+        return self._webhooks
 
 
 def _make_default_async_client(
@@ -229,6 +259,9 @@ class AsyncSpeechify:
         self._audio: typing.Optional[AsyncAudioClient] = None
         self._models: typing.Optional[AsyncModelsClient] = None
         self._voices: typing.Optional[AsyncVoicesClient] = None
+        self._projects: typing.Optional[AsyncProjectsClient] = None
+        self._workspaces: typing.Optional[AsyncWorkspacesClient] = None
+        self._webhooks: typing.Optional[AsyncWebhooksClient] = None
 
     @property
     def audio(self):
@@ -253,6 +286,30 @@ class AsyncSpeechify:
 
             self._voices = AsyncVoicesClient(client_wrapper=self._client_wrapper)
         return self._voices
+
+    @property
+    def projects(self):
+        if self._projects is None:
+            from .projects.client import AsyncProjectsClient  # noqa: E402
+
+            self._projects = AsyncProjectsClient(client_wrapper=self._client_wrapper)
+        return self._projects
+
+    @property
+    def workspaces(self):
+        if self._workspaces is None:
+            from .workspaces.client import AsyncWorkspacesClient  # noqa: E402
+
+            self._workspaces = AsyncWorkspacesClient(client_wrapper=self._client_wrapper)
+        return self._workspaces
+
+    @property
+    def webhooks(self):
+        if self._webhooks is None:
+            from .webhooks.client import AsyncWebhooksClient  # noqa: E402
+
+            self._webhooks = AsyncWebhooksClient(client_wrapper=self._client_wrapper)
+        return self._webhooks
 
 
 def _get_base_url(*, base_url: typing.Optional[str] = None, environment: SpeechifyEnvironment) -> str:
