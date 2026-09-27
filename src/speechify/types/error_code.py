@@ -4,6 +4,7 @@ import typing
 
 ErrorCode = typing.Union[
     typing.Literal[
+        "endpoint_moved",
         "bad_request",
         "validation_failed",
         "unauthorized",
