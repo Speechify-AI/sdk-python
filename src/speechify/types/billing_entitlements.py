@@ -50,11 +50,6 @@ class BillingEntitlements(UniversalBaseModel):
     Whether voice cloning is available.
     """
 
-    waymark_access: bool = pydantic.Field()
-    """
-    Whether Waymark API access is available.
-    """
-
     hosted_apis_access: bool = pydantic.Field()
     """
     Whether stores and hosted APIs are available. Off on every plan; granted per workspace.
