@@ -111,6 +111,7 @@ ErrorCode = typing.Union[
         "phone_number_quota_reached",
         "batch_calls_not_included",
         "voice_cloning_not_included",
+        "voice_cloning_unavailable_in_region",
         "consent_challenge_not_found",
         "consent_challenge_expired",
         "consent_challenge_already_used",

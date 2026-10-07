@@ -42,6 +42,8 @@ class ConsentChallengesClient:
 
         Challenge creation is rate limited per workspace at a few dozen per hour, far more tightly than the rest of the voice surface, because each one precedes a person recording themselves - mint it when your speaker is ready, not speculatively. Read the live ceiling off `RateLimit-*` rather than hard-coding it. **On a `429`, always honour `Retry-After` rather than a fixed backoff of your own**: the wait is measured in minutes and can run to most of an hour. `RateLimit-*` are omitted rather than reporting a bucket that is not the one refusing.
 
+        Like `POST /v1/voices`, a challenge requested from a jurisdiction where voice cloning is not available returns 403 `voice_cloning_unavailable_in_region` and issues no phrase. The location is read from the IP address that sends the request, which is your server's when your backend calls the API.
+
         Parameters
         ----------
         full_name : str
@@ -122,6 +124,8 @@ class AsyncConsentChallengesClient:
         A challenge is single use, is bound to the workspace that created it, and expires at `expires_at` - it is proof that a speaker was in front of a microphone just now, so create it when you are ready to record, not at the start of your flow. If it expires, create another one and record again.
 
         Challenge creation is rate limited per workspace at a few dozen per hour, far more tightly than the rest of the voice surface, because each one precedes a person recording themselves - mint it when your speaker is ready, not speculatively. Read the live ceiling off `RateLimit-*` rather than hard-coding it. **On a `429`, always honour `Retry-After` rather than a fixed backoff of your own**: the wait is measured in minutes and can run to most of an hour. `RateLimit-*` are omitted rather than reporting a bucket that is not the one refusing.
+
+        Like `POST /v1/voices`, a challenge requested from a jurisdiction where voice cloning is not available returns 403 `voice_cloning_unavailable_in_region` and issues no phrase. The location is read from the IP address that sends the request, which is your server's when your backend calls the API.
 
         Parameters
         ----------

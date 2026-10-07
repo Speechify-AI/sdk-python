@@ -613,6 +613,8 @@ Cloning requires proof that the speaker agreed to it. Create a consent challenge
 The clone belongs to the workspace rather than the member who created it, and access follows the caller's workspace role and API-key scopes exactly as for any other voice: voices scopes to list it, audio scopes to synthesize with it, and the content-management permission plus a write scope on the key to delete it. Cloned voices are usable self-serve on `simba-3.0` (and, on a workspace pinned before API version `2026-09-21`, on the retired `simba-english` and `simba-multilingual`, which from 2026-11-21 are served by our current models and still take cloned voices). `simba-3.2` also serves cloned voices.
 
 The previous flow, a `consent` form field carrying the speaker's name and email as a JSON string, was switched off on 2026-09-23 for every API version: a create that sends `consent` and no `consent_challenge_id` returns 400 `consent_verification_required`.
+
+Voice cloning is not available in some jurisdictions. A request from one returns 403 `voice_cloning_unavailable_in_region` before consent verification runs, so it does not spend the challenge. The location is read from the IP address that sends the request, which is your server's when your backend calls the API; a location header in the request is ignored.
 </dd>
 </dl>
 </dd>
@@ -2446,6 +2448,8 @@ Returns a `phrase` for the speaker to read aloud and an `id` that identifies thi
 A challenge is single use, is bound to the workspace that created it, and expires at `expires_at` - it is proof that a speaker was in front of a microphone just now, so create it when you are ready to record, not at the start of your flow. If it expires, create another one and record again.
 
 Challenge creation is rate limited per workspace at a few dozen per hour, far more tightly than the rest of the voice surface, because each one precedes a person recording themselves - mint it when your speaker is ready, not speculatively. Read the live ceiling off `RateLimit-*` rather than hard-coding it. **On a `429`, always honour `Retry-After` rather than a fixed backoff of your own**: the wait is measured in minutes and can run to most of an hour. `RateLimit-*` are omitted rather than reporting a bucket that is not the one refusing.
+
+Like `POST /v1/voices`, a challenge requested from a jurisdiction where voice cloning is not available returns 403 `voice_cloning_unavailable_in_region` and issues no phrase. The location is read from the IP address that sends the request, which is your server's when your backend calls the API.
 </dd>
 </dl>
 </dd>
