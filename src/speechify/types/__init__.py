@@ -44,6 +44,7 @@ if typing.TYPE_CHECKING:
     from .project_monthly_budget_status import ProjectMonthlyBudgetStatus
     from .project_restore import ProjectRestore
     from .project_still_revoked_counts import ProjectStillRevokedCounts
+    from .safety_identifier import SafetyIdentifier
     from .speech_chunk_event import SpeechChunkEvent
     from .speech_done_event import SpeechDoneEvent
     from .speech_error_event import SpeechErrorEvent
@@ -98,6 +99,7 @@ _dynamic_imports: typing.Dict[str, str] = {
     "ProjectMonthlyBudgetStatus": ".project_monthly_budget_status",
     "ProjectRestore": ".project_restore",
     "ProjectStillRevokedCounts": ".project_still_revoked_counts",
+    "SafetyIdentifier": ".safety_identifier",
     "SpeechChunkEvent": ".speech_chunk_event",
     "SpeechDoneEvent": ".speech_done_event",
     "SpeechErrorEvent": ".speech_error_event",
@@ -174,6 +176,7 @@ __all__ = [
     "ProjectMonthlyBudgetStatus",
     "ProjectRestore",
     "ProjectStillRevokedCounts",
+    "SafetyIdentifier",
     "SpeechChunkEvent",
     "SpeechDoneEvent",
     "SpeechErrorEvent",

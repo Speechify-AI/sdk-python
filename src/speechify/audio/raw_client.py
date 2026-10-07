@@ -30,6 +30,7 @@ from ..types.get_speech_options_request import GetSpeechOptionsRequest
 from ..types.get_speech_response import GetSpeechResponse
 from ..types.get_stream_options_request import GetStreamOptionsRequest
 from ..types.get_stream_request_model import GetStreamRequestModel
+from ..types.safety_identifier import SafetyIdentifier
 from ..types.speech_stream_event import SpeechStreamEvent
 from .types.get_speech_request_audio_format import GetSpeechRequestAudioFormat
 from .types.get_speech_request_model import GetSpeechRequestModel
@@ -55,6 +56,7 @@ class RawAudioClient:
         model: typing.Optional[GetSpeechRequestModel] = OMIT,
         options: typing.Optional[GetSpeechOptionsRequest] = OMIT,
         output_format: typing.Optional[AudioOutputFormat] = OMIT,
+        safety_identifier: typing.Optional[SafetyIdentifier] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[GetSpeechResponse]:
         """
@@ -91,6 +93,9 @@ class RawAudioClient:
         output_format : typing.Optional[AudioOutputFormat]
             The output audio format as a `codec_sampleRate_bitrate` string. Takes precedence over `audio_format` when set.
 
+        safety_identifier : typing.Optional[SafetyIdentifier]
+            Optional. A stable, opaque identifier for the end user this request is made for: a hash of your own user id or an opaque id, never an email address or other personal data. It is recorded with the request even under zero data retention, and your workspace can be given per-end-user limits and a block list keyed on it. See https://docs.speechify.ai/build/guides/concepts/safety-identifiers.
+
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -111,6 +116,7 @@ class RawAudioClient:
                     object_=options, annotation=GetSpeechOptionsRequest, direction="write"
                 ),
                 "output_format": output_format,
+                "safety_identifier": safety_identifier,
                 "voice_id": voice_id,
             },
             headers={
@@ -259,6 +265,7 @@ class RawAudioClient:
         model: typing.Optional[GetStreamRequestModel] = OMIT,
         options: typing.Optional[GetStreamOptionsRequest] = OMIT,
         output_format: typing.Optional[AudioStreamOutputFormat] = OMIT,
+        safety_identifier: typing.Optional[SafetyIdentifier] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.Iterator[HttpResponse[typing.Iterator[bytes]]]:
         """
@@ -303,6 +310,9 @@ class RawAudioClient:
         output_format : typing.Optional[AudioStreamOutputFormat]
             The output audio format as a `codec_sampleRate_bitrate` string. Takes precedence over the `Accept` header when set, so you can request formats the `Accept` enum does not cover (e.g. `pcm_16000`, `ulaw_8000`). `wav_*` formats are not supported on streaming - use `POST /v1/audio/speech` for wav.
 
+        safety_identifier : typing.Optional[SafetyIdentifier]
+            Optional. A stable, opaque identifier for the end user this request is made for: a hash of your own user id or an opaque id, never an email address or other personal data. It is recorded with the request even under zero data retention, and your workspace can be given per-end-user limits and a block list keyed on it. See https://docs.speechify.ai/build/guides/concepts/safety-identifiers.
+
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration. You can pass in configuration such as `chunk_size`, and more to customize the request and response.
 
@@ -329,6 +339,7 @@ class RawAudioClient:
                     object_=options, annotation=GetStreamOptionsRequest, direction="write"
                 ),
                 "output_format": output_format,
+                "safety_identifier": safety_identifier,
                 "voice_id": voice_id,
             },
             headers={
@@ -484,6 +495,7 @@ class RawAudioClient:
         model: typing.Optional[GetStreamRequestModel] = OMIT,
         options: typing.Optional[GetStreamOptionsRequest] = OMIT,
         output_format: typing.Optional[AudioStreamOutputFormat] = OMIT,
+        safety_identifier: typing.Optional[SafetyIdentifier] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.Iterator[HttpResponse[typing.Iterator[SpeechStreamEvent]]]:
         """
@@ -547,6 +559,9 @@ class RawAudioClient:
         output_format : typing.Optional[AudioStreamOutputFormat]
             The output audio format as a `codec_sampleRate_bitrate` string. Takes precedence over the `Accept` header when set, so you can request formats the `Accept` enum does not cover (e.g. `pcm_16000`, `ulaw_8000`). `wav_*` formats are not supported on streaming - use `POST /v1/audio/speech` for wav.
 
+        safety_identifier : typing.Optional[SafetyIdentifier]
+            Optional. A stable, opaque identifier for the end user this request is made for: a hash of your own user id or an opaque id, never an email address or other personal data. It is recorded with the request even under zero data retention, and your workspace can be given per-end-user limits and a block list keyed on it. See https://docs.speechify.ai/build/guides/concepts/safety-identifiers.
+
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -576,6 +591,7 @@ class RawAudioClient:
                     object_=options, annotation=GetStreamOptionsRequest, direction="write"
                 ),
                 "output_format": output_format,
+                "safety_identifier": safety_identifier,
                 "voice_id": voice_id,
             },
             headers={
@@ -758,6 +774,7 @@ class AsyncRawAudioClient:
         model: typing.Optional[GetSpeechRequestModel] = OMIT,
         options: typing.Optional[GetSpeechOptionsRequest] = OMIT,
         output_format: typing.Optional[AudioOutputFormat] = OMIT,
+        safety_identifier: typing.Optional[SafetyIdentifier] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[GetSpeechResponse]:
         """
@@ -794,6 +811,9 @@ class AsyncRawAudioClient:
         output_format : typing.Optional[AudioOutputFormat]
             The output audio format as a `codec_sampleRate_bitrate` string. Takes precedence over `audio_format` when set.
 
+        safety_identifier : typing.Optional[SafetyIdentifier]
+            Optional. A stable, opaque identifier for the end user this request is made for: a hash of your own user id or an opaque id, never an email address or other personal data. It is recorded with the request even under zero data retention, and your workspace can be given per-end-user limits and a block list keyed on it. See https://docs.speechify.ai/build/guides/concepts/safety-identifiers.
+
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -814,6 +834,7 @@ class AsyncRawAudioClient:
                     object_=options, annotation=GetSpeechOptionsRequest, direction="write"
                 ),
                 "output_format": output_format,
+                "safety_identifier": safety_identifier,
                 "voice_id": voice_id,
             },
             headers={
@@ -962,6 +983,7 @@ class AsyncRawAudioClient:
         model: typing.Optional[GetStreamRequestModel] = OMIT,
         options: typing.Optional[GetStreamOptionsRequest] = OMIT,
         output_format: typing.Optional[AudioStreamOutputFormat] = OMIT,
+        safety_identifier: typing.Optional[SafetyIdentifier] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.AsyncIterator[AsyncHttpResponse[typing.AsyncIterator[bytes]]]:
         """
@@ -1006,6 +1028,9 @@ class AsyncRawAudioClient:
         output_format : typing.Optional[AudioStreamOutputFormat]
             The output audio format as a `codec_sampleRate_bitrate` string. Takes precedence over the `Accept` header when set, so you can request formats the `Accept` enum does not cover (e.g. `pcm_16000`, `ulaw_8000`). `wav_*` formats are not supported on streaming - use `POST /v1/audio/speech` for wav.
 
+        safety_identifier : typing.Optional[SafetyIdentifier]
+            Optional. A stable, opaque identifier for the end user this request is made for: a hash of your own user id or an opaque id, never an email address or other personal data. It is recorded with the request even under zero data retention, and your workspace can be given per-end-user limits and a block list keyed on it. See https://docs.speechify.ai/build/guides/concepts/safety-identifiers.
+
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration. You can pass in configuration such as `chunk_size`, and more to customize the request and response.
 
@@ -1032,6 +1057,7 @@ class AsyncRawAudioClient:
                     object_=options, annotation=GetStreamOptionsRequest, direction="write"
                 ),
                 "output_format": output_format,
+                "safety_identifier": safety_identifier,
                 "voice_id": voice_id,
             },
             headers={
@@ -1188,6 +1214,7 @@ class AsyncRawAudioClient:
         model: typing.Optional[GetStreamRequestModel] = OMIT,
         options: typing.Optional[GetStreamOptionsRequest] = OMIT,
         output_format: typing.Optional[AudioStreamOutputFormat] = OMIT,
+        safety_identifier: typing.Optional[SafetyIdentifier] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.AsyncIterator[AsyncHttpResponse[typing.AsyncIterator[SpeechStreamEvent]]]:
         """
@@ -1251,6 +1278,9 @@ class AsyncRawAudioClient:
         output_format : typing.Optional[AudioStreamOutputFormat]
             The output audio format as a `codec_sampleRate_bitrate` string. Takes precedence over the `Accept` header when set, so you can request formats the `Accept` enum does not cover (e.g. `pcm_16000`, `ulaw_8000`). `wav_*` formats are not supported on streaming - use `POST /v1/audio/speech` for wav.
 
+        safety_identifier : typing.Optional[SafetyIdentifier]
+            Optional. A stable, opaque identifier for the end user this request is made for: a hash of your own user id or an opaque id, never an email address or other personal data. It is recorded with the request even under zero data retention, and your workspace can be given per-end-user limits and a block list keyed on it. See https://docs.speechify.ai/build/guides/concepts/safety-identifiers.
+
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -1280,6 +1310,7 @@ class AsyncRawAudioClient:
                     object_=options, annotation=GetStreamOptionsRequest, direction="write"
                 ),
                 "output_format": output_format,
+                "safety_identifier": safety_identifier,
                 "voice_id": voice_id,
             },
             headers={

@@ -7,6 +7,7 @@ from ..core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 from .audio_stream_output_format import AudioStreamOutputFormat
 from .get_stream_options_request import GetStreamOptionsRequest
 from .get_stream_request_model import GetStreamRequestModel
+from .safety_identifier import SafetyIdentifier
 
 
 class GetStreamRequest(UniversalBaseModel):
@@ -38,6 +39,11 @@ class GetStreamRequest(UniversalBaseModel):
     output_format: typing.Optional[AudioStreamOutputFormat] = pydantic.Field(default=None)
     """
     The output audio format as a `codec_sampleRate_bitrate` string. Takes precedence over the `Accept` header when set, so you can request formats the `Accept` enum does not cover (e.g. `pcm_16000`, `ulaw_8000`). `wav_*` formats are not supported on streaming - use `POST /v1/audio/speech` for wav.
+    """
+
+    safety_identifier: typing.Optional[SafetyIdentifier] = pydantic.Field(default=None)
+    """
+    Optional. A stable, opaque identifier for the end user this request is made for: a hash of your own user id or an opaque id, never an email address or other personal data. It is recorded with the request even under zero data retention, and your workspace can be given per-end-user limits and a block list keyed on it. See https://docs.speechify.ai/build/guides/concepts/safety-identifiers.
     """
 
     voice_id: str = pydantic.Field()

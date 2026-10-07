@@ -134,6 +134,7 @@ ErrorCode = typing.Union[
         "model_retired",
         "too_many_voices",
         "content_policy_violation",
+        "safety_identifier_blocked",
         "topup_not_in_plan",
         "credit_purchase_unpaid",
         "credit_purchase_payment_in_progress",
