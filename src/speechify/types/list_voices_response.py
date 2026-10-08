@@ -12,9 +12,9 @@ class ListVoicesResponse(PaginationMeta):
     """
     Payload for `GET /v1/voices` - the shared voice catalog plus the
     workspace's personal cloned voices. Carries the shared pagination
-    metadata so the list can be paged when `limit` is supplied;
-    `next_cursor` is null and `has_more` is false when the full
-    catalogue is returned in one response.
+    metadata: pass `next_cursor` as `cursor` to fetch the next page
+    while `has_more` is true. `next_cursor` is null and `has_more` is
+    false on the last page.
     """
 
     voices: typing.List[GetVoice]
