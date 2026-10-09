@@ -81,6 +81,7 @@ class RawConsentChallengesClient:
         """
         _response = self._client_wrapper.httpx_client.request(
             "v1/voices/consent-challenges",
+            base_url=self._client_wrapper.get_environment().base,
             method="POST",
             json={
                 "full_name": full_name,
@@ -266,6 +267,7 @@ class AsyncRawConsentChallengesClient:
         """
         _response = await self._client_wrapper.httpx_client.request(
             "v1/voices/consent-challenges",
+            base_url=self._client_wrapper.get_environment().base,
             method="POST",
             json={
                 "full_name": full_name,

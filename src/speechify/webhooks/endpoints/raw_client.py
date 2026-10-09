@@ -83,6 +83,7 @@ class RawEndpointsClient:
         """
         _response = self._client_wrapper.httpx_client.request(
             "v1/webhooks/endpoints",
+            base_url=self._client_wrapper.get_environment().base,
             method="GET",
             params={
                 "cursor": cursor,
@@ -233,6 +234,7 @@ class RawEndpointsClient:
         """
         _response = self._client_wrapper.httpx_client.request(
             "v1/webhooks/endpoints",
+            base_url=self._client_wrapper.get_environment().base,
             method="POST",
             json={
                 "url": url,
@@ -365,6 +367,7 @@ class RawEndpointsClient:
         """
         _response = self._client_wrapper.httpx_client.request(
             f"v1/webhooks/endpoints/{encode_path_param(webhook_endpoint_id)}",
+            base_url=self._client_wrapper.get_environment().base,
             method="GET",
             request_options=request_options,
         )
@@ -451,6 +454,7 @@ class RawEndpointsClient:
         """
         _response = self._client_wrapper.httpx_client.request(
             f"v1/webhooks/endpoints/{encode_path_param(webhook_endpoint_id)}",
+            base_url=self._client_wrapper.get_environment().base,
             method="DELETE",
             request_options=request_options,
         )
@@ -581,6 +585,7 @@ class RawEndpointsClient:
         """
         _response = self._client_wrapper.httpx_client.request(
             f"v1/webhooks/endpoints/{encode_path_param(webhook_endpoint_id)}",
+            base_url=self._client_wrapper.get_environment().base,
             method="PATCH",
             json={
                 "url": url,
@@ -705,6 +710,7 @@ class RawEndpointsClient:
         """
         _response = self._client_wrapper.httpx_client.request(
             f"v1/webhooks/endpoints/{encode_path_param(webhook_endpoint_id)}/rotate-secret",
+            base_url=self._client_wrapper.get_environment().base,
             method="POST",
             request_options=request_options,
         )
@@ -828,6 +834,7 @@ class RawEndpointsClient:
         """
         _response = self._client_wrapper.httpx_client.request(
             f"v1/webhooks/endpoints/{encode_path_param(webhook_endpoint_id)}/deliveries",
+            base_url=self._client_wrapper.get_environment().base,
             method="GET",
             params={
                 "cursor": cursor,
@@ -972,6 +979,7 @@ class AsyncRawEndpointsClient:
         """
         _response = await self._client_wrapper.httpx_client.request(
             "v1/webhooks/endpoints",
+            base_url=self._client_wrapper.get_environment().base,
             method="GET",
             params={
                 "cursor": cursor,
@@ -1125,6 +1133,7 @@ class AsyncRawEndpointsClient:
         """
         _response = await self._client_wrapper.httpx_client.request(
             "v1/webhooks/endpoints",
+            base_url=self._client_wrapper.get_environment().base,
             method="POST",
             json={
                 "url": url,
@@ -1257,6 +1266,7 @@ class AsyncRawEndpointsClient:
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"v1/webhooks/endpoints/{encode_path_param(webhook_endpoint_id)}",
+            base_url=self._client_wrapper.get_environment().base,
             method="GET",
             request_options=request_options,
         )
@@ -1343,6 +1353,7 @@ class AsyncRawEndpointsClient:
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"v1/webhooks/endpoints/{encode_path_param(webhook_endpoint_id)}",
+            base_url=self._client_wrapper.get_environment().base,
             method="DELETE",
             request_options=request_options,
         )
@@ -1473,6 +1484,7 @@ class AsyncRawEndpointsClient:
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"v1/webhooks/endpoints/{encode_path_param(webhook_endpoint_id)}",
+            base_url=self._client_wrapper.get_environment().base,
             method="PATCH",
             json={
                 "url": url,
@@ -1597,6 +1609,7 @@ class AsyncRawEndpointsClient:
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"v1/webhooks/endpoints/{encode_path_param(webhook_endpoint_id)}/rotate-secret",
+            base_url=self._client_wrapper.get_environment().base,
             method="POST",
             request_options=request_options,
         )
@@ -1720,6 +1733,7 @@ class AsyncRawEndpointsClient:
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"v1/webhooks/endpoints/{encode_path_param(webhook_endpoint_id)}/deliveries",
+            base_url=self._client_wrapper.get_environment().base,
             method="GET",
             params={
                 "cursor": cursor,

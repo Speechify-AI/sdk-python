@@ -6,13 +6,55 @@ import typing
 from importlib import import_module
 
 if typing.TYPE_CHECKING:
+    from .audio_stream_input_model import AudioStreamInputModel
+    from .audio_stream_input_output_format import AudioStreamInputOutputFormat
+    from .audio_stream_input_speech_marks import AudioStreamInputSpeechMarks
     from .get_speech_request_audio_format import GetSpeechRequestAudioFormat
     from .get_speech_request_model import GetSpeechRequestModel
+    from .input_close import InputClose
+    from .input_close_type import InputCloseType
+    from .input_flush import InputFlush
+    from .input_flush_type import InputFlushType
+    from .input_text import InputText
+    from .input_text_type import InputTextType
+    from .speech_chunk import SpeechChunk
+    from .speech_chunk_speech_marks_item import SpeechChunkSpeechMarksItem
+    from .speech_chunk_type import SpeechChunkType
+    from .speech_done import SpeechDone
+    from .speech_done_reason import SpeechDoneReason
+    from .speech_done_type import SpeechDoneType
+    from .speech_error import SpeechError
+    from .speech_error_error import SpeechErrorError
+    from .speech_error_error_code import SpeechErrorErrorCode
+    from .speech_error_type import SpeechErrorType
+    from .speech_flushed import SpeechFlushed
+    from .speech_flushed_type import SpeechFlushedType
     from .stream_audio_request_accept import StreamAudioRequestAccept
     from .stream_with_timestamps_audio_request_accept import StreamWithTimestampsAudioRequestAccept
 _dynamic_imports: typing.Dict[str, str] = {
+    "AudioStreamInputModel": ".audio_stream_input_model",
+    "AudioStreamInputOutputFormat": ".audio_stream_input_output_format",
+    "AudioStreamInputSpeechMarks": ".audio_stream_input_speech_marks",
     "GetSpeechRequestAudioFormat": ".get_speech_request_audio_format",
     "GetSpeechRequestModel": ".get_speech_request_model",
+    "InputClose": ".input_close",
+    "InputCloseType": ".input_close_type",
+    "InputFlush": ".input_flush",
+    "InputFlushType": ".input_flush_type",
+    "InputText": ".input_text",
+    "InputTextType": ".input_text_type",
+    "SpeechChunk": ".speech_chunk",
+    "SpeechChunkSpeechMarksItem": ".speech_chunk_speech_marks_item",
+    "SpeechChunkType": ".speech_chunk_type",
+    "SpeechDone": ".speech_done",
+    "SpeechDoneReason": ".speech_done_reason",
+    "SpeechDoneType": ".speech_done_type",
+    "SpeechError": ".speech_error",
+    "SpeechErrorError": ".speech_error_error",
+    "SpeechErrorErrorCode": ".speech_error_error_code",
+    "SpeechErrorType": ".speech_error_type",
+    "SpeechFlushed": ".speech_flushed",
+    "SpeechFlushedType": ".speech_flushed_type",
     "StreamAudioRequestAccept": ".stream_audio_request_accept",
     "StreamWithTimestampsAudioRequestAccept": ".stream_with_timestamps_audio_request_accept",
 }
@@ -40,8 +82,29 @@ def __dir__():
 
 
 __all__ = [
+    "AudioStreamInputModel",
+    "AudioStreamInputOutputFormat",
+    "AudioStreamInputSpeechMarks",
     "GetSpeechRequestAudioFormat",
     "GetSpeechRequestModel",
+    "InputClose",
+    "InputCloseType",
+    "InputFlush",
+    "InputFlushType",
+    "InputText",
+    "InputTextType",
+    "SpeechChunk",
+    "SpeechChunkSpeechMarksItem",
+    "SpeechChunkType",
+    "SpeechDone",
+    "SpeechDoneReason",
+    "SpeechDoneType",
+    "SpeechError",
+    "SpeechErrorError",
+    "SpeechErrorErrorCode",
+    "SpeechErrorType",
+    "SpeechFlushed",
+    "SpeechFlushedType",
     "StreamAudioRequestAccept",
     "StreamWithTimestampsAudioRequestAccept",
 ]

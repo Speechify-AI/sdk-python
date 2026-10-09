@@ -25,9 +25,6 @@ class Speechify:
 
     Parameters
     ----------
-    base_url : typing.Optional[str]
-        The base url to use for requests from the client.
-
     environment : SpeechifyEnvironment
         The environment to use for requests from the client. from .environment import SpeechifyEnvironment
 
@@ -70,7 +67,6 @@ class Speechify:
     def __init__(
         self,
         *,
-        base_url: typing.Optional[str] = None,
         environment: SpeechifyEnvironment = SpeechifyEnvironment.DEFAULT,
         version: typing.Optional[str] = "2026-09-30",
         token: typing.Optional[typing.Union[str, typing.Callable[[], str]]] = os.getenv("SPEECHIFY_API_KEY"),
@@ -86,7 +82,7 @@ class Speechify:
         )
         _defaulted_max_retries = max_retries if max_retries is not None else 2
         self._client_wrapper = SyncClientWrapper(
-            base_url=_get_base_url(base_url=base_url, environment=environment),
+            environment=environment,
             version=version,
             token=token,
             headers=headers,
@@ -179,9 +175,6 @@ class AsyncSpeechify:
 
     Parameters
     ----------
-    base_url : typing.Optional[str]
-        The base url to use for requests from the client.
-
     environment : SpeechifyEnvironment
         The environment to use for requests from the client. from .environment import SpeechifyEnvironment
 
@@ -227,7 +220,6 @@ class AsyncSpeechify:
     def __init__(
         self,
         *,
-        base_url: typing.Optional[str] = None,
         environment: SpeechifyEnvironment = SpeechifyEnvironment.DEFAULT,
         version: typing.Optional[str] = "2026-09-30",
         token: typing.Optional[typing.Union[str, typing.Callable[[], str]]] = os.getenv("SPEECHIFY_API_KEY"),
@@ -244,7 +236,7 @@ class AsyncSpeechify:
         )
         _defaulted_max_retries = max_retries if max_retries is not None else 2
         self._client_wrapper = AsyncClientWrapper(
-            base_url=_get_base_url(base_url=base_url, environment=environment),
+            environment=environment,
             version=version,
             token=token,
             headers=headers,
@@ -310,12 +302,3 @@ class AsyncSpeechify:
 
             self._webhooks = AsyncWebhooksClient(client_wrapper=self._client_wrapper)
         return self._webhooks
-
-
-def _get_base_url(*, base_url: typing.Optional[str] = None, environment: SpeechifyEnvironment) -> str:
-    if base_url is not None:
-        return base_url
-    elif environment is not None:
-        return environment.value
-    else:
-        raise Exception("Please pass in either base_url or environment to construct the client")

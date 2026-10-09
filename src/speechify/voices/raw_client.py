@@ -120,6 +120,7 @@ class RawVoicesClient:
         """
         _response = self._client_wrapper.httpx_client.request(
             "v1/voices",
+            base_url=self._client_wrapper.get_environment().base,
             method="GET",
             params={
                 "cursor": cursor,
@@ -293,6 +294,7 @@ class RawVoicesClient:
         )
         _response = self._client_wrapper.httpx_client.request(
             "v1/voices",
+            base_url=self._client_wrapper.get_environment().base,
             method="POST",
             data={
                 "name": name,
@@ -474,6 +476,7 @@ class RawVoicesClient:
         """
         _response = self._client_wrapper.httpx_client.request(
             f"v1/voices/{encode_path_param(voice_id)}",
+            base_url=self._client_wrapper.get_environment().base,
             method="GET",
             request_options=request_options,
         )
@@ -597,6 +600,7 @@ class RawVoicesClient:
         """
         _response = self._client_wrapper.httpx_client.request(
             f"v1/voices/{encode_path_param(voice_id)}",
+            base_url=self._client_wrapper.get_environment().base,
             method="DELETE",
             request_options=request_options,
         )
@@ -722,6 +726,7 @@ class RawVoicesClient:
         """
         with self._client_wrapper.httpx_client.stream(
             f"v1/voices/{encode_path_param(voice_id)}/sample",
+            base_url=self._client_wrapper.get_environment().base,
             method="GET",
             request_options=request_options,
         ) as _response:
@@ -922,6 +927,7 @@ class AsyncRawVoicesClient:
         """
         _response = await self._client_wrapper.httpx_client.request(
             "v1/voices",
+            base_url=self._client_wrapper.get_environment().base,
             method="GET",
             params={
                 "cursor": cursor,
@@ -1098,6 +1104,7 @@ class AsyncRawVoicesClient:
         )
         _response = await self._client_wrapper.httpx_client.request(
             "v1/voices",
+            base_url=self._client_wrapper.get_environment().base,
             method="POST",
             data={
                 "name": name,
@@ -1281,6 +1288,7 @@ class AsyncRawVoicesClient:
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"v1/voices/{encode_path_param(voice_id)}",
+            base_url=self._client_wrapper.get_environment().base,
             method="GET",
             request_options=request_options,
         )
@@ -1406,6 +1414,7 @@ class AsyncRawVoicesClient:
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"v1/voices/{encode_path_param(voice_id)}",
+            base_url=self._client_wrapper.get_environment().base,
             method="DELETE",
             request_options=request_options,
         )
@@ -1531,6 +1540,7 @@ class AsyncRawVoicesClient:
         """
         async with self._client_wrapper.httpx_client.stream(
             f"v1/voices/{encode_path_param(voice_id)}/sample",
+            base_url=self._client_wrapper.get_environment().base,
             method="GET",
             request_options=request_options,
         ) as _response:

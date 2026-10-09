@@ -89,6 +89,7 @@ class RawProjectsClient:
         """
         _response = self._client_wrapper.httpx_client.request(
             "v1/projects",
+            base_url=self._client_wrapper.get_environment().base,
             method="GET",
             params={
                 "cursor": cursor,
@@ -194,6 +195,7 @@ class RawProjectsClient:
         """
         _response = self._client_wrapper.httpx_client.request(
             "v1/projects",
+            base_url=self._client_wrapper.get_environment().base,
             method="POST",
             json={
                 "name": name,
@@ -299,6 +301,7 @@ class RawProjectsClient:
         """
         _response = self._client_wrapper.httpx_client.request(
             f"v1/projects/{encode_path_param(project_id)}",
+            base_url=self._client_wrapper.get_environment().base,
             method="GET",
             request_options=request_options,
         )
@@ -453,6 +456,7 @@ class RawProjectsClient:
         """
         _response = self._client_wrapper.httpx_client.request(
             f"v1/projects/{encode_path_param(project_id)}",
+            base_url=self._client_wrapper.get_environment().base,
             method="DELETE",
             json={
                 "mode": mode,
@@ -601,6 +605,7 @@ class RawProjectsClient:
         """
         _response = self._client_wrapper.httpx_client.request(
             f"v1/projects/{encode_path_param(project_id)}",
+            base_url=self._client_wrapper.get_environment().base,
             method="PATCH",
             json={
                 "max_requests_per_minute": max_requests_per_minute,
@@ -726,6 +731,7 @@ class RawProjectsClient:
         """
         _response = self._client_wrapper.httpx_client.request(
             f"v1/projects/{encode_path_param(project_id)}/archive",
+            base_url=self._client_wrapper.get_environment().base,
             method="POST",
             request_options=request_options,
         )
@@ -817,6 +823,7 @@ class RawProjectsClient:
         """
         _response = self._client_wrapper.httpx_client.request(
             f"v1/projects/{encode_path_param(project_id)}/unarchive",
+            base_url=self._client_wrapper.get_environment().base,
             method="POST",
             request_options=request_options,
         )
@@ -933,6 +940,7 @@ class RawProjectsClient:
         """
         _response = self._client_wrapper.httpx_client.request(
             f"v1/projects/{encode_path_param(project_id)}/restore",
+            base_url=self._client_wrapper.get_environment().base,
             method="POST",
             request_options=request_options,
         )
@@ -1065,6 +1073,7 @@ class RawProjectsClient:
         """
         _response = self._client_wrapper.httpx_client.request(
             f"v1/projects/{encode_path_param(project_id)}/audit",
+            base_url=self._client_wrapper.get_environment().base,
             method="GET",
             params={
                 "cursor": cursor,
@@ -1214,6 +1223,7 @@ class RawProjectsClient:
         """
         _response = self._client_wrapper.httpx_client.request(
             f"v1/projects/{encode_path_param(project_id)}/members",
+            base_url=self._client_wrapper.get_environment().base,
             method="GET",
             params={
                 "cursor": cursor,
@@ -1333,6 +1343,7 @@ class RawProjectsClient:
         """
         _response = self._client_wrapper.httpx_client.request(
             f"v1/projects/{encode_path_param(project_id)}/members",
+            base_url=self._client_wrapper.get_environment().base,
             method="POST",
             json={
                 "user_id": user_id,
@@ -1449,6 +1460,7 @@ class RawProjectsClient:
         """
         _response = self._client_wrapper.httpx_client.request(
             f"v1/projects/{encode_path_param(project_id)}/members/{encode_path_param(user_id)}",
+            base_url=self._client_wrapper.get_environment().base,
             method="DELETE",
             request_options=request_options,
         )
@@ -1575,6 +1587,7 @@ class AsyncRawProjectsClient:
         """
         _response = await self._client_wrapper.httpx_client.request(
             "v1/projects",
+            base_url=self._client_wrapper.get_environment().base,
             method="GET",
             params={
                 "cursor": cursor,
@@ -1685,6 +1698,7 @@ class AsyncRawProjectsClient:
         """
         _response = await self._client_wrapper.httpx_client.request(
             "v1/projects",
+            base_url=self._client_wrapper.get_environment().base,
             method="POST",
             json={
                 "name": name,
@@ -1792,6 +1806,7 @@ class AsyncRawProjectsClient:
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"v1/projects/{encode_path_param(project_id)}",
+            base_url=self._client_wrapper.get_environment().base,
             method="GET",
             request_options=request_options,
         )
@@ -1946,6 +1961,7 @@ class AsyncRawProjectsClient:
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"v1/projects/{encode_path_param(project_id)}",
+            base_url=self._client_wrapper.get_environment().base,
             method="DELETE",
             json={
                 "mode": mode,
@@ -2094,6 +2110,7 @@ class AsyncRawProjectsClient:
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"v1/projects/{encode_path_param(project_id)}",
+            base_url=self._client_wrapper.get_environment().base,
             method="PATCH",
             json={
                 "max_requests_per_minute": max_requests_per_minute,
@@ -2219,6 +2236,7 @@ class AsyncRawProjectsClient:
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"v1/projects/{encode_path_param(project_id)}/archive",
+            base_url=self._client_wrapper.get_environment().base,
             method="POST",
             request_options=request_options,
         )
@@ -2310,6 +2328,7 @@ class AsyncRawProjectsClient:
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"v1/projects/{encode_path_param(project_id)}/unarchive",
+            base_url=self._client_wrapper.get_environment().base,
             method="POST",
             request_options=request_options,
         )
@@ -2426,6 +2445,7 @@ class AsyncRawProjectsClient:
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"v1/projects/{encode_path_param(project_id)}/restore",
+            base_url=self._client_wrapper.get_environment().base,
             method="POST",
             request_options=request_options,
         )
@@ -2558,6 +2578,7 @@ class AsyncRawProjectsClient:
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"v1/projects/{encode_path_param(project_id)}/audit",
+            base_url=self._client_wrapper.get_environment().base,
             method="GET",
             params={
                 "cursor": cursor,
@@ -2710,6 +2731,7 @@ class AsyncRawProjectsClient:
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"v1/projects/{encode_path_param(project_id)}/members",
+            base_url=self._client_wrapper.get_environment().base,
             method="GET",
             params={
                 "cursor": cursor,
@@ -2832,6 +2854,7 @@ class AsyncRawProjectsClient:
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"v1/projects/{encode_path_param(project_id)}/members",
+            base_url=self._client_wrapper.get_environment().base,
             method="POST",
             json={
                 "user_id": user_id,
@@ -2948,6 +2971,7 @@ class AsyncRawProjectsClient:
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"v1/projects/{encode_path_param(project_id)}/members/{encode_path_param(user_id)}",
+            base_url=self._client_wrapper.get_environment().base,
             method="DELETE",
             request_options=request_options,
         )

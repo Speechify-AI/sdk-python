@@ -106,6 +106,7 @@ class RawAudioClient:
         """
         _response = self._client_wrapper.httpx_client.request(
             "v1/audio/speech",
+            base_url=self._client_wrapper.get_environment().base,
             method="POST",
             json={
                 "audio_format": audio_format,
@@ -330,6 +331,7 @@ class RawAudioClient:
         """
         with self._client_wrapper.httpx_client.stream(
             "v1/audio/stream",
+            base_url=self._client_wrapper.get_environment().base,
             method="POST",
             json={
                 "input": input,
@@ -582,6 +584,7 @@ class RawAudioClient:
         """
         with self._client_wrapper.httpx_client.stream(
             "v1/audio/stream/with-timestamps",
+            base_url=self._client_wrapper.get_environment().base,
             method="POST",
             json={
                 "input": input,
@@ -824,6 +827,7 @@ class AsyncRawAudioClient:
         """
         _response = await self._client_wrapper.httpx_client.request(
             "v1/audio/speech",
+            base_url=self._client_wrapper.get_environment().base,
             method="POST",
             json={
                 "audio_format": audio_format,
@@ -1048,6 +1052,7 @@ class AsyncRawAudioClient:
         """
         async with self._client_wrapper.httpx_client.stream(
             "v1/audio/stream",
+            base_url=self._client_wrapper.get_environment().base,
             method="POST",
             json={
                 "input": input,
@@ -1301,6 +1306,7 @@ class AsyncRawAudioClient:
         """
         async with self._client_wrapper.httpx_client.stream(
             "v1/audio/stream/with-timestamps",
+            base_url=self._client_wrapper.get_environment().base,
             method="POST",
             json={
                 "input": input,
