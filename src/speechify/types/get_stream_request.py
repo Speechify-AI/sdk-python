@@ -18,6 +18,7 @@ class GetStreamRequest(UniversalBaseModel):
     input: str = pydantic.Field()
     """
     Plain text or SSML to be synthesized to speech.
+    Up to 20,000 characters as sent, SSML markup included.
     Refer to https://docs.speechify.ai/docs/api-limits for the input size limits.
     Emotion, Pitch and Speed Rate are configured in the ssml input, please refer to the ssml documentation for more information: https://docs.speechify.ai/docs/ssml#prosody
     """
