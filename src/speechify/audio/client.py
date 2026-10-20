@@ -71,7 +71,7 @@ class AudioClient:
             Plain text or SSML to be synthesized to speech.
             Up to 2,000 characters of spoken text, the characters the request is billed for: SSML tags do not count. The input as sent, markup included, may be up to 20,000 characters.
             Refer to https://docs.speechify.ai/docs/api-limits for the input size limits.
-            SSML sets pauses (`<break>`), speaking rate (`<prosody rate>`) and pronunciation (`<sub alias>`): see https://docs.speechify.ai/build/guides/text-to-speech/ssml for each tag. Emotion styles, pitch, volume and emphasis are applied only by the Simba 1.6 models, until 2026-11-21; `simba-3.0`, `simba-3.2` and `simba-3.5` accept those tags without applying them.
+            SSML sets pauses (`<break>`), speaking rate, pitch and volume (`<prosody>`) and pronunciation (`<sub alias>`): see https://docs.speechify.ai/build/guides/text-to-speech/ssml for each tag. Emotion styles and emphasis are applied only by the Simba 1.6 models, until 2026-11-21; `simba-3.0`, `simba-3.2` and `simba-3.5` accept those tags without applying them.
 
         voice_id : str
             Id of the voice to be used for synthesizing speech. Refer to /v1/voices endpoint for available voices
@@ -164,7 +164,7 @@ class AudioClient:
             Plain text or SSML to be synthesized to speech.
             Up to 20,000 characters of spoken text, the characters the request is billed for: SSML tags do not count. The input as sent, markup included, may be up to 32,000 characters.
             Refer to https://docs.speechify.ai/docs/api-limits for the input size limits.
-            SSML sets pauses (`<break>`), speaking rate (`<prosody rate>`) and pronunciation (`<sub alias>`): see https://docs.speechify.ai/build/guides/text-to-speech/ssml for each tag. Emotion styles, pitch, volume and emphasis are applied only by the Simba 1.6 models, until 2026-11-21; `simba-3.0`, `simba-3.2` and `simba-3.5` accept those tags without applying them.
+            SSML sets pauses (`<break>`), speaking rate, pitch and volume (`<prosody>`) and pronunciation (`<sub alias>`): see https://docs.speechify.ai/build/guides/text-to-speech/ssml for each tag. Emotion styles and emphasis are applied only by the Simba 1.6 models, until 2026-11-21; `simba-3.0`, `simba-3.2` and `simba-3.5` accept those tags without applying them.
 
         voice_id : str
             Id of the voice to be used for synthesizing speech. Refer to /v1/voices endpoint for available voices
@@ -290,7 +290,7 @@ class AudioClient:
             Plain text or SSML to be synthesized to speech.
             Up to 20,000 characters of spoken text, the characters the request is billed for: SSML tags do not count. The input as sent, markup included, may be up to 32,000 characters.
             Refer to https://docs.speechify.ai/docs/api-limits for the input size limits.
-            SSML sets pauses (`<break>`), speaking rate (`<prosody rate>`) and pronunciation (`<sub alias>`): see https://docs.speechify.ai/build/guides/text-to-speech/ssml for each tag. Emotion styles, pitch, volume and emphasis are applied only by the Simba 1.6 models, until 2026-11-21; `simba-3.0`, `simba-3.2` and `simba-3.5` accept those tags without applying them.
+            SSML sets pauses (`<break>`), speaking rate, pitch and volume (`<prosody>`) and pronunciation (`<sub alias>`): see https://docs.speechify.ai/build/guides/text-to-speech/ssml for each tag. Emotion styles and emphasis are applied only by the Simba 1.6 models, until 2026-11-21; `simba-3.0`, `simba-3.2` and `simba-3.5` accept those tags without applying them.
 
         voice_id : str
             Id of the voice to be used for synthesizing speech. Refer to /v1/voices endpoint for available voices
@@ -421,7 +421,7 @@ class AsyncAudioClient:
             Plain text or SSML to be synthesized to speech.
             Up to 2,000 characters of spoken text, the characters the request is billed for: SSML tags do not count. The input as sent, markup included, may be up to 20,000 characters.
             Refer to https://docs.speechify.ai/docs/api-limits for the input size limits.
-            SSML sets pauses (`<break>`), speaking rate (`<prosody rate>`) and pronunciation (`<sub alias>`): see https://docs.speechify.ai/build/guides/text-to-speech/ssml for each tag. Emotion styles, pitch, volume and emphasis are applied only by the Simba 1.6 models, until 2026-11-21; `simba-3.0`, `simba-3.2` and `simba-3.5` accept those tags without applying them.
+            SSML sets pauses (`<break>`), speaking rate, pitch and volume (`<prosody>`) and pronunciation (`<sub alias>`): see https://docs.speechify.ai/build/guides/text-to-speech/ssml for each tag. Emotion styles and emphasis are applied only by the Simba 1.6 models, until 2026-11-21; `simba-3.0`, `simba-3.2` and `simba-3.5` accept those tags without applying them.
 
         voice_id : str
             Id of the voice to be used for synthesizing speech. Refer to /v1/voices endpoint for available voices
@@ -522,7 +522,7 @@ class AsyncAudioClient:
             Plain text or SSML to be synthesized to speech.
             Up to 20,000 characters of spoken text, the characters the request is billed for: SSML tags do not count. The input as sent, markup included, may be up to 32,000 characters.
             Refer to https://docs.speechify.ai/docs/api-limits for the input size limits.
-            SSML sets pauses (`<break>`), speaking rate (`<prosody rate>`) and pronunciation (`<sub alias>`): see https://docs.speechify.ai/build/guides/text-to-speech/ssml for each tag. Emotion styles, pitch, volume and emphasis are applied only by the Simba 1.6 models, until 2026-11-21; `simba-3.0`, `simba-3.2` and `simba-3.5` accept those tags without applying them.
+            SSML sets pauses (`<break>`), speaking rate, pitch and volume (`<prosody>`) and pronunciation (`<sub alias>`): see https://docs.speechify.ai/build/guides/text-to-speech/ssml for each tag. Emotion styles and emphasis are applied only by the Simba 1.6 models, until 2026-11-21; `simba-3.0`, `simba-3.2` and `simba-3.5` accept those tags without applying them.
 
         voice_id : str
             Id of the voice to be used for synthesizing speech. Refer to /v1/voices endpoint for available voices
@@ -657,7 +657,7 @@ class AsyncAudioClient:
             Plain text or SSML to be synthesized to speech.
             Up to 20,000 characters of spoken text, the characters the request is billed for: SSML tags do not count. The input as sent, markup included, may be up to 32,000 characters.
             Refer to https://docs.speechify.ai/docs/api-limits for the input size limits.
-            SSML sets pauses (`<break>`), speaking rate (`<prosody rate>`) and pronunciation (`<sub alias>`): see https://docs.speechify.ai/build/guides/text-to-speech/ssml for each tag. Emotion styles, pitch, volume and emphasis are applied only by the Simba 1.6 models, until 2026-11-21; `simba-3.0`, `simba-3.2` and `simba-3.5` accept those tags without applying them.
+            SSML sets pauses (`<break>`), speaking rate, pitch and volume (`<prosody>`) and pronunciation (`<sub alias>`): see https://docs.speechify.ai/build/guides/text-to-speech/ssml for each tag. Emotion styles and emphasis are applied only by the Simba 1.6 models, until 2026-11-21; `simba-3.0`, `simba-3.2` and `simba-3.5` accept those tags without applying them.
 
         voice_id : str
             Id of the voice to be used for synthesizing speech. Refer to /v1/voices endpoint for available voices
