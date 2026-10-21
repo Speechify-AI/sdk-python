@@ -38,6 +38,18 @@ class GetVoice(UniversalBaseModel):
     another Speechify product), which is managed where it was made.
     """
 
+    staff_pick_rank: typing.Optional[int] = pydantic.Field(default=None)
+    """
+    This voice's place among the staff picks for its `locale`: `1`
+    is the voice Speechify recommends first for that language, `2`
+    the next, and so on. Omitted for a voice that is not a staff
+    pick, and always for a cloned voice.
+    
+    Simba 3.5 sounds best with a voice native to the language you
+    generate, so to choose a voice for a language, filter by
+    `locale` and start from its lowest `staff_pick_rank`.
+    """
+
     tags: typing.Optional[typing.List[str]] = None
     type: GetVoiceType
 
