@@ -142,6 +142,7 @@ client = Speechify(
 client.voices.list(
     locale="en",
     model="simba-3.2",
+    project_id="proj_01arz3ndektsv4rrffq69g5fav",
 )
 ```
 
@@ -212,7 +213,7 @@ client = Speechify(..., timeout=20.0)
 
 # Override timeout for a specific method
 client.audio.speech(..., request_options={
-    "timeout_in_seconds": 1
+    "timeout": 1
 })
 ```
 
