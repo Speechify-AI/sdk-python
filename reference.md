@@ -492,7 +492,7 @@ client = Speechify(
 
 client.voices.list(
     locale="en",
-    model="simba-3.5",
+    model="simba-3.2",
     project_id="proj_01arz3ndektsv4rrffq69g5fav",
 )
 
