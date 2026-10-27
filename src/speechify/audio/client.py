@@ -111,7 +111,7 @@ class AudioClient:
         from speechify import Speechify
 
         client = Speechify(
-            "2026-09-30",
+            version="2026-09-30",
             token="YOUR_TOKEN",
         )
         client.audio.speech(
@@ -217,7 +217,7 @@ class AudioClient:
         from speechify import Speechify
 
         client = Speechify(
-            "2026-09-30",
+            version="2026-09-30",
             token="YOUR_TOKEN",
         )
         client.audio.stream(
@@ -343,7 +343,7 @@ class AudioClient:
         from speechify import Speechify
 
         client = Speechify(
-            "2026-09-30",
+            version="2026-09-30",
             token="YOUR_TOKEN",
         )
         response = client.audio.stream_with_timestamps(
@@ -463,7 +463,7 @@ class AsyncAudioClient:
         from speechify import AsyncSpeechify
 
         client = AsyncSpeechify(
-            "2026-09-30",
+            version="2026-09-30",
             token="YOUR_TOKEN",
         )
 
@@ -577,7 +577,7 @@ class AsyncAudioClient:
         from speechify import AsyncSpeechify
 
         client = AsyncSpeechify(
-            "2026-09-30",
+            version="2026-09-30",
             token="YOUR_TOKEN",
         )
 
@@ -712,13 +712,13 @@ class AsyncAudioClient:
         from speechify import AsyncSpeechify
 
         client = AsyncSpeechify(
-            "2026-09-30",
+            version="2026-09-30",
             token="YOUR_TOKEN",
         )
 
 
         async def main() -> None:
-            response = await client.audio.stream_with_timestamps(
+            response = client.audio.stream_with_timestamps(
                 input="Streaming long-form audio with the Speechify API.",
                 model="simba-3.2",
                 voice_id="geffen_32",

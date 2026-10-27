@@ -1,6 +1,8 @@
 [project]
 name = "speechify-api"
 dynamic = ["version"]
+license = "MIT"
+license-files = ["LICENSE"]
 
 [tool.poetry]
 name = "speechify-api"
@@ -35,8 +37,7 @@ classifiers = [
     "Operating System :: POSIX :: Linux",
     "Operating System :: Microsoft :: Windows",
     "Topic :: Software Development :: Libraries :: Python Modules",
-    "Typing :: Typed",
-    "License :: OSI Approved :: MIT License"
+    "Typing :: Typed"
 ]
 packages = [
     { include = "speechify", from = "src"}
@@ -51,7 +52,7 @@ Repository = 'https://github.com/Speechify-AI/sdk-python'
 python = "^3.10"
 aiohttp = { version = ">=3.14.1,<4", optional = true, python = ">=3.10"}
 httpx = ">=0.21.2"
-httpx-aiohttp = { version = "0.1.8", optional = true, python = ">=3.10"}
+httpx-aiohttp = { version = "^0.1.8", optional = true, python = ">=3.10"}
 pydantic = ">= 1.9.2"
 pydantic-core = ">=2.18.2,<3.0.0"
 typing_extensions = ">= 4.0.0"

@@ -52,7 +52,7 @@ class WorkspacesClient:
         from speechify import Speechify
 
         client = Speechify(
-            "2026-09-30",
+            version="2026-09-30",
             token="YOUR_TOKEN",
         )
         client.workspaces.get_entitlements()
@@ -109,7 +109,7 @@ class AsyncWorkspacesClient:
         from speechify import AsyncSpeechify
 
         client = AsyncSpeechify(
-            "2026-09-30",
+            version="2026-09-30",
             token="YOUR_TOKEN",
         )
 

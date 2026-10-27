@@ -88,7 +88,7 @@ class ProjectsClient:
         from speechify import Speechify
 
         client = Speechify(
-            "2026-09-30",
+            version="2026-09-30",
             token="YOUR_TOKEN",
         )
         response = client.projects.list()
@@ -132,7 +132,7 @@ class ProjectsClient:
         from speechify import Speechify
 
         client = Speechify(
-            "2026-09-30",
+            version="2026-09-30",
             token="YOUR_TOKEN",
         )
         client.projects.create(
@@ -166,7 +166,7 @@ class ProjectsClient:
         from speechify import Speechify
 
         client = Speechify(
-            "2026-09-30",
+            version="2026-09-30",
             token="YOUR_TOKEN",
         )
         client.projects.get(
@@ -267,7 +267,7 @@ class ProjectsClient:
         from speechify import Speechify
 
         client = Speechify(
-            "2026-09-30",
+            version="2026-09-30",
             token="YOUR_TOKEN",
         )
         client.projects.delete(
@@ -341,7 +341,7 @@ class ProjectsClient:
         from speechify import Speechify
 
         client = Speechify(
-            "2026-09-30",
+            version="2026-09-30",
             token="YOUR_TOKEN",
         )
         client.projects.update(
@@ -386,7 +386,7 @@ class ProjectsClient:
         from speechify import Speechify
 
         client = Speechify(
-            "2026-09-30",
+            version="2026-09-30",
             token="YOUR_TOKEN",
         )
         client.projects.archive(
@@ -418,7 +418,7 @@ class ProjectsClient:
         from speechify import Speechify
 
         client = Speechify(
-            "2026-09-30",
+            version="2026-09-30",
             token="YOUR_TOKEN",
         )
         client.projects.unarchive(
@@ -475,7 +475,7 @@ class ProjectsClient:
         from speechify import Speechify
 
         client = Speechify(
-            "2026-09-30",
+            version="2026-09-30",
             token="YOUR_TOKEN",
         )
         client.projects.restore(
@@ -532,7 +532,7 @@ class ProjectsClient:
         from speechify import Speechify
 
         client = Speechify(
-            "2026-09-30",
+            version="2026-09-30",
             token="YOUR_TOKEN",
         )
         response = client.projects.audit(
@@ -586,7 +586,7 @@ class ProjectsClient:
         from speechify import Speechify
 
         client = Speechify(
-            "2026-09-30",
+            version="2026-09-30",
             token="YOUR_TOKEN",
         )
         response = client.projects.list_members(
@@ -632,7 +632,7 @@ class ProjectsClient:
         from speechify import Speechify
 
         client = Speechify(
-            "2026-09-30",
+            version="2026-09-30",
             token="YOUR_TOKEN",
         )
         client.projects.grant_member(
@@ -674,7 +674,7 @@ class ProjectsClient:
         from speechify import Speechify
 
         client = Speechify(
-            "2026-09-30",
+            version="2026-09-30",
             token="YOUR_TOKEN",
         )
         client.projects.revoke_member(
@@ -757,7 +757,7 @@ class AsyncProjectsClient:
         from speechify import AsyncSpeechify
 
         client = AsyncSpeechify(
-            "2026-09-30",
+            version="2026-09-30",
             token="YOUR_TOKEN",
         )
 
@@ -810,7 +810,7 @@ class AsyncProjectsClient:
         from speechify import AsyncSpeechify
 
         client = AsyncSpeechify(
-            "2026-09-30",
+            version="2026-09-30",
             token="YOUR_TOKEN",
         )
 
@@ -852,7 +852,7 @@ class AsyncProjectsClient:
         from speechify import AsyncSpeechify
 
         client = AsyncSpeechify(
-            "2026-09-30",
+            version="2026-09-30",
             token="YOUR_TOKEN",
         )
 
@@ -961,7 +961,7 @@ class AsyncProjectsClient:
         from speechify import AsyncSpeechify
 
         client = AsyncSpeechify(
-            "2026-09-30",
+            version="2026-09-30",
             token="YOUR_TOKEN",
         )
 
@@ -1045,7 +1045,7 @@ class AsyncProjectsClient:
         from speechify import AsyncSpeechify
 
         client = AsyncSpeechify(
-            "2026-09-30",
+            version="2026-09-30",
             token="YOUR_TOKEN",
         )
 
@@ -1098,7 +1098,7 @@ class AsyncProjectsClient:
         from speechify import AsyncSpeechify
 
         client = AsyncSpeechify(
-            "2026-09-30",
+            version="2026-09-30",
             token="YOUR_TOKEN",
         )
 
@@ -1138,7 +1138,7 @@ class AsyncProjectsClient:
         from speechify import AsyncSpeechify
 
         client = AsyncSpeechify(
-            "2026-09-30",
+            version="2026-09-30",
             token="YOUR_TOKEN",
         )
 
@@ -1205,7 +1205,7 @@ class AsyncProjectsClient:
         from speechify import AsyncSpeechify
 
         client = AsyncSpeechify(
-            "2026-09-30",
+            version="2026-09-30",
             token="YOUR_TOKEN",
         )
 
@@ -1270,7 +1270,7 @@ class AsyncProjectsClient:
         from speechify import AsyncSpeechify
 
         client = AsyncSpeechify(
-            "2026-09-30",
+            version="2026-09-30",
             token="YOUR_TOKEN",
         )
 
@@ -1333,7 +1333,7 @@ class AsyncProjectsClient:
         from speechify import AsyncSpeechify
 
         client = AsyncSpeechify(
-            "2026-09-30",
+            version="2026-09-30",
             token="YOUR_TOKEN",
         )
 
@@ -1390,7 +1390,7 @@ class AsyncProjectsClient:
         from speechify import AsyncSpeechify
 
         client = AsyncSpeechify(
-            "2026-09-30",
+            version="2026-09-30",
             token="YOUR_TOKEN",
         )
 
@@ -1440,7 +1440,7 @@ class AsyncProjectsClient:
         from speechify import AsyncSpeechify
 
         client = AsyncSpeechify(
-            "2026-09-30",
+            version="2026-09-30",
             token="YOUR_TOKEN",
         )
 
