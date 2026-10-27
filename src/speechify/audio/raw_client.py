@@ -16,6 +16,7 @@ from ..core.serialization import convert_and_respect_annotation_metadata
 from ..errors.bad_gateway_error import BadGatewayError
 from ..errors.bad_request_error import BadRequestError
 from ..errors.conflict_error import ConflictError
+from ..errors.content_too_large_error import ContentTooLargeError
 from ..errors.forbidden_error import ForbiddenError
 from ..errors.internal_server_error import InternalServerError
 from ..errors.not_found_error import NotFoundError
@@ -206,6 +207,17 @@ class RawAudioClient:
                         typing.Any,
                         parse_obj_as(
                             type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        Error,
+                        parse_obj_as(
+                            type_=Error,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -437,6 +449,17 @@ class RawAudioClient:
                                 typing.Any,
                                 parse_obj_as(
                                     type_=typing.Any,  # type: ignore
+                                    object_=_response.json(),
+                                ),
+                            ),
+                        )
+                    if _response.status_code == 413:
+                        raise ContentTooLargeError(
+                            headers=dict(_response.headers),
+                            body=typing.cast(
+                                Error,
+                                parse_obj_as(
+                                    type_=Error,  # type: ignore
                                     object_=_response.json(),
                                 ),
                             ),
@@ -724,6 +747,17 @@ class RawAudioClient:
                                 ),
                             ),
                         )
+                    if _response.status_code == 413:
+                        raise ContentTooLargeError(
+                            headers=dict(_response.headers),
+                            body=typing.cast(
+                                Error,
+                                parse_obj_as(
+                                    type_=Error,  # type: ignore
+                                    object_=_response.json(),
+                                ),
+                            ),
+                        )
                     if _response.status_code == 429:
                         raise TooManyRequestsError(
                             headers=dict(_response.headers),
@@ -948,6 +982,17 @@ class AsyncRawAudioClient:
                         typing.Any,
                         parse_obj_as(
                             type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        Error,
+                        parse_obj_as(
+                            type_=Error,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1180,6 +1225,17 @@ class AsyncRawAudioClient:
                                 typing.Any,
                                 parse_obj_as(
                                     type_=typing.Any,  # type: ignore
+                                    object_=_response.json(),
+                                ),
+                            ),
+                        )
+                    if _response.status_code == 413:
+                        raise ContentTooLargeError(
+                            headers=dict(_response.headers),
+                            body=typing.cast(
+                                Error,
+                                parse_obj_as(
+                                    type_=Error,  # type: ignore
                                     object_=_response.json(),
                                 ),
                             ),
@@ -1463,6 +1519,17 @@ class AsyncRawAudioClient:
                                 typing.Any,
                                 parse_obj_as(
                                     type_=typing.Any,  # type: ignore
+                                    object_=_response.json(),
+                                ),
+                            ),
+                        )
+                    if _response.status_code == 413:
+                        raise ContentTooLargeError(
+                            headers=dict(_response.headers),
+                            body=typing.cast(
+                                Error,
+                                parse_obj_as(
+                                    type_=Error,  # type: ignore
                                     object_=_response.json(),
                                 ),
                             ),

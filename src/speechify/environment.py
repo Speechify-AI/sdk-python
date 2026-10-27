@@ -6,11 +6,9 @@ from __future__ import annotations
 class SpeechifyEnvironment:
     DEFAULT: SpeechifyEnvironment
 
-    def __init__(self, *, base: str, production: str):
+    def __init__(self, *, base: str, websocket: str):
         self.base = base
-        self.production = production
+        self.websocket = websocket
 
 
-SpeechifyEnvironment.DEFAULT = SpeechifyEnvironment(
-    base="https://api.speechify.ai", production="wss://api.speechify.ai"
-)
+SpeechifyEnvironment.DEFAULT = SpeechifyEnvironment(base="https://api.speechify.ai", websocket="wss://api.speechify.ai")
