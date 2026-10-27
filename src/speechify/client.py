@@ -6,7 +6,6 @@ import os
 import typing
 
 import httpx
-from .core.api_error import ApiError
 from .core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from .core.logging import LogConfig, Logger
 from .environment import SpeechifyEnvironment
@@ -14,7 +13,10 @@ from .environment import SpeechifyEnvironment
 if typing.TYPE_CHECKING:
     from .audio.client import AsyncAudioClient, AudioClient
     from .models.client import AsyncModelsClient, ModelsClient
+    from .projects.client import AsyncProjectsClient, ProjectsClient
     from .voices.client import AsyncVoicesClient, VoicesClient
+    from .webhooks.client import AsyncWebhooksClient, WebhooksClient
+    from .workspaces.client import AsyncWorkspacesClient, WorkspacesClient
 
 
 class Speechify:
@@ -23,9 +25,6 @@ class Speechify:
 
     Parameters
     ----------
-    base_url : typing.Optional[str]
-        The base url to use for requests from the client.
-
     environment : SpeechifyEnvironment
         The environment to use for requests from the client. from .environment import SpeechifyEnvironment
 
@@ -60,7 +59,7 @@ class Speechify:
     from speechify import Speechify
 
     client = Speechify(
-        "2026-09-13",
+        "2026-09-30",
         token="YOUR_TOKEN",
     )
     """
@@ -68,9 +67,8 @@ class Speechify:
     def __init__(
         self,
         *,
-        base_url: typing.Optional[str] = None,
         environment: SpeechifyEnvironment = SpeechifyEnvironment.DEFAULT,
-        version: typing.Optional[str] = "2026-09-13",
+        version: typing.Optional[str] = "2026-09-30",
         token: typing.Optional[typing.Union[str, typing.Callable[[], str]]] = os.getenv("SPEECHIFY_API_KEY"),
         headers: typing.Optional[typing.Dict[str, str]] = None,
         timeout: typing.Optional[float] = None,
@@ -83,12 +81,8 @@ class Speechify:
             timeout if timeout is not None else 60 if httpx_client is None else httpx_client.timeout.read
         )
         _defaulted_max_retries = max_retries if max_retries is not None else 2
-        if token is None:
-            raise ApiError(
-                body="The client must be instantiated be either passing in token or setting SPEECHIFY_API_KEY"
-            )
         self._client_wrapper = SyncClientWrapper(
-            base_url=_get_base_url(base_url=base_url, environment=environment),
+            environment=environment,
             version=version,
             token=token,
             headers=headers,
@@ -104,6 +98,9 @@ class Speechify:
         self._audio: typing.Optional[AudioClient] = None
         self._models: typing.Optional[ModelsClient] = None
         self._voices: typing.Optional[VoicesClient] = None
+        self._projects: typing.Optional[ProjectsClient] = None
+        self._workspaces: typing.Optional[WorkspacesClient] = None
+        self._webhooks: typing.Optional[WebhooksClient] = None
 
     @property
     def audio(self):
@@ -128,6 +125,30 @@ class Speechify:
 
             self._voices = VoicesClient(client_wrapper=self._client_wrapper)
         return self._voices
+
+    @property
+    def projects(self):
+        if self._projects is None:
+            from .projects.client import ProjectsClient  # noqa: E402
+
+            self._projects = ProjectsClient(client_wrapper=self._client_wrapper)
+        return self._projects
+
+    @property
+    def workspaces(self):
+        if self._workspaces is None:
+            from .workspaces.client import WorkspacesClient  # noqa: E402
+
+            self._workspaces = WorkspacesClient(client_wrapper=self._client_wrapper)
+        return self._workspaces
+
+    @property
+    def webhooks(self):
+        if self._webhooks is None:
+            from .webhooks.client import WebhooksClient  # noqa: E402
+
+            self._webhooks = WebhooksClient(client_wrapper=self._client_wrapper)
+        return self._webhooks
 
 
 def _make_default_async_client(
@@ -154,9 +175,6 @@ class AsyncSpeechify:
 
     Parameters
     ----------
-    base_url : typing.Optional[str]
-        The base url to use for requests from the client.
-
     environment : SpeechifyEnvironment
         The environment to use for requests from the client. from .environment import SpeechifyEnvironment
 
@@ -194,7 +212,7 @@ class AsyncSpeechify:
     from speechify import AsyncSpeechify
 
     client = AsyncSpeechify(
-        "2026-09-13",
+        "2026-09-30",
         token="YOUR_TOKEN",
     )
     """
@@ -202,9 +220,8 @@ class AsyncSpeechify:
     def __init__(
         self,
         *,
-        base_url: typing.Optional[str] = None,
         environment: SpeechifyEnvironment = SpeechifyEnvironment.DEFAULT,
-        version: typing.Optional[str] = "2026-09-13",
+        version: typing.Optional[str] = "2026-09-30",
         token: typing.Optional[typing.Union[str, typing.Callable[[], str]]] = os.getenv("SPEECHIFY_API_KEY"),
         headers: typing.Optional[typing.Dict[str, str]] = None,
         async_token: typing.Optional[typing.Callable[[], typing.Awaitable[str]]] = None,
@@ -218,12 +235,8 @@ class AsyncSpeechify:
             timeout if timeout is not None else 60 if httpx_client is None else httpx_client.timeout.read
         )
         _defaulted_max_retries = max_retries if max_retries is not None else 2
-        if token is None:
-            raise ApiError(
-                body="The client must be instantiated be either passing in token or setting SPEECHIFY_API_KEY"
-            )
         self._client_wrapper = AsyncClientWrapper(
-            base_url=_get_base_url(base_url=base_url, environment=environment),
+            environment=environment,
             version=version,
             token=token,
             headers=headers,
@@ -238,6 +251,9 @@ class AsyncSpeechify:
         self._audio: typing.Optional[AsyncAudioClient] = None
         self._models: typing.Optional[AsyncModelsClient] = None
         self._voices: typing.Optional[AsyncVoicesClient] = None
+        self._projects: typing.Optional[AsyncProjectsClient] = None
+        self._workspaces: typing.Optional[AsyncWorkspacesClient] = None
+        self._webhooks: typing.Optional[AsyncWebhooksClient] = None
 
     @property
     def audio(self):
@@ -263,11 +279,26 @@ class AsyncSpeechify:
             self._voices = AsyncVoicesClient(client_wrapper=self._client_wrapper)
         return self._voices
 
+    @property
+    def projects(self):
+        if self._projects is None:
+            from .projects.client import AsyncProjectsClient  # noqa: E402
 
-def _get_base_url(*, base_url: typing.Optional[str] = None, environment: SpeechifyEnvironment) -> str:
-    if base_url is not None:
-        return base_url
-    elif environment is not None:
-        return environment.value
-    else:
-        raise Exception("Please pass in either base_url or environment to construct the client")
+            self._projects = AsyncProjectsClient(client_wrapper=self._client_wrapper)
+        return self._projects
+
+    @property
+    def workspaces(self):
+        if self._workspaces is None:
+            from .workspaces.client import AsyncWorkspacesClient  # noqa: E402
+
+            self._workspaces = AsyncWorkspacesClient(client_wrapper=self._client_wrapper)
+        return self._workspaces
+
+    @property
+    def webhooks(self):
+        if self._webhooks is None:
+            from .webhooks.client import AsyncWebhooksClient  # noqa: E402
+
+            self._webhooks = AsyncWebhooksClient(client_wrapper=self._client_wrapper)
+        return self._webhooks

@@ -3,5 +3,5 @@
 import typing
 
 GetVoicesModelName = typing.Union[
-    typing.Literal["simba-english", "simba-multilingual", "simba-3.0", "simba-3.2"], typing.Any
+    typing.Literal["simba-english", "simba-multilingual", "simba-3.0", "simba-3.2", "simba-3.5"], typing.Any
 ]

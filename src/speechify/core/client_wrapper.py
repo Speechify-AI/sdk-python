@@ -3,6 +3,7 @@
 import typing
 
 import httpx
+from ..environment import SpeechifyEnvironment
 from .http_client import AsyncHttpClient, HttpClient
 from .logging import LogConfig, Logger
 
@@ -12,9 +13,9 @@ class BaseClientWrapper:
         self,
         *,
         version: typing.Optional[str] = None,
-        token: typing.Union[str, typing.Callable[[], str]],
+        token: typing.Optional[typing.Union[str, typing.Callable[[], str]]] = None,
         headers: typing.Optional[typing.Dict[str, str]] = None,
-        base_url: str,
+        environment: SpeechifyEnvironment,
         timeout: typing.Optional[float] = None,
         max_retries: int = 2,
         logging: typing.Optional[typing.Union[LogConfig, Logger]] = None,
@@ -22,7 +23,7 @@ class BaseClientWrapper:
         self._version = version
         self._token = token
         self._headers = headers
-        self._base_url = base_url
+        self._environment = environment
         self._timeout = timeout
         self._max_retries = max_retries
         self._logging = logging
@@ -31,21 +32,23 @@ class BaseClientWrapper:
         import platform
 
         headers: typing.Dict[str, str] = {
-            "User-Agent": "speechify-api/4.0.0",
+            "User-Agent": "speechify-api/4.0.1",
             "X-Fern-Language": "Python",
             "X-Fern-Runtime": f"python/{platform.python_version()}",
             "X-Fern-Platform": f"{platform.system().lower()}/{platform.release()}",
             "X-Fern-SDK-Name": "speechify-api",
-            "X-Fern-SDK-Version": "4.0.0",
+            "X-Fern-SDK-Version": "4.0.1",
             **(self.get_custom_headers() or {}),
         }
         if self._version is not None:
             headers["Speechify-Version"] = self._version
-        headers["Authorization"] = f"Bearer {self._get_token()}"
+        token = self._get_token()
+        if token is not None:
+            headers["Authorization"] = f"Bearer {token}"
         return headers
 
-    def _get_token(self) -> str:
-        if isinstance(self._token, str):
+    def _get_token(self) -> typing.Optional[str]:
+        if isinstance(self._token, str) or self._token is None:
             return self._token
         else:
             return self._token()
@@ -53,8 +56,8 @@ class BaseClientWrapper:
     def get_custom_headers(self) -> typing.Optional[typing.Dict[str, str]]:
         return self._headers
 
-    def get_base_url(self) -> str:
-        return self._base_url
+    def get_environment(self) -> SpeechifyEnvironment:
+        return self._environment
 
     def get_timeout(self) -> typing.Optional[float]:
         return self._timeout
@@ -68,9 +71,9 @@ class SyncClientWrapper(BaseClientWrapper):
         self,
         *,
         version: typing.Optional[str] = None,
-        token: typing.Union[str, typing.Callable[[], str]],
+        token: typing.Optional[typing.Union[str, typing.Callable[[], str]]] = None,
         headers: typing.Optional[typing.Dict[str, str]] = None,
-        base_url: str,
+        environment: SpeechifyEnvironment,
         timeout: typing.Optional[float] = None,
         max_retries: int = 2,
         logging: typing.Optional[typing.Union[LogConfig, Logger]] = None,
@@ -80,7 +83,7 @@ class SyncClientWrapper(BaseClientWrapper):
             version=version,
             token=token,
             headers=headers,
-            base_url=base_url,
+            environment=environment,
             timeout=timeout,
             max_retries=max_retries,
             logging=logging,
@@ -89,7 +92,6 @@ class SyncClientWrapper(BaseClientWrapper):
             httpx_client=httpx_client,
             base_headers=self.get_headers,
             base_timeout=self.get_timeout,
-            base_url=self.get_base_url,
             base_max_retries=self.get_max_retries(),
             logging_config=self._logging,
         )
@@ -100,9 +102,9 @@ class AsyncClientWrapper(BaseClientWrapper):
         self,
         *,
         version: typing.Optional[str] = None,
-        token: typing.Union[str, typing.Callable[[], str]],
+        token: typing.Optional[typing.Union[str, typing.Callable[[], str]]] = None,
         headers: typing.Optional[typing.Dict[str, str]] = None,
-        base_url: str,
+        environment: SpeechifyEnvironment,
         timeout: typing.Optional[float] = None,
         max_retries: int = 2,
         logging: typing.Optional[typing.Union[LogConfig, Logger]] = None,
@@ -113,7 +115,7 @@ class AsyncClientWrapper(BaseClientWrapper):
             version=version,
             token=token,
             headers=headers,
-            base_url=base_url,
+            environment=environment,
             timeout=timeout,
             max_retries=max_retries,
             logging=logging,
@@ -123,7 +125,6 @@ class AsyncClientWrapper(BaseClientWrapper):
             httpx_client=httpx_client,
             base_headers=self.get_headers,
             base_timeout=self.get_timeout,
-            base_url=self.get_base_url,
             base_max_retries=self.get_max_retries(),
             async_base_headers=self.async_get_headers,
             logging_config=self._logging,

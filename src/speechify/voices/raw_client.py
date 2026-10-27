@@ -50,17 +50,25 @@ class RawVoicesClient:
         locale: typing.Optional[str] = None,
         gender: typing.Optional[ListVoicesRequestGender] = None,
         model: typing.Optional[str] = None,
+        project_id: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SyncPager[GetVoice, ListVoicesResponse]:
         """
         Lists the voices available to the caller - the shared voice
-        catalog plus the workspace's cloned voices, whichever member or
-        service-account key created them. By default
-        the full catalogue is returned in one response. Pagination is
-        opt-in: pass `limit` (and then `cursor` from the previous
-        response) to page through the list while `has_more` is true. Max
-        page size is 200. Narrow the list with the `type` and `locale`
-        filters (applied before pagination, so pages stay full).
+        catalog plus the cloned voices they can reach, whichever member or
+        service-account key created them. A clone filed under a project is
+        listed only for a caller who can reach that project; a clone no
+        project filed is shared with the whole workspace and is listed for
+        everyone in it. The list is paged: a request without `limit`
+        returns the first 50 voices, and `limit` raises that to at most
+        200. Pass `cursor` from the previous response to fetch the next
+        page while `has_more` is true. API versions before 2026-07-16
+        returned the whole catalogue when `limit` was omitted. Narrow the
+        list with the `type` and `locale` filters.
+
+        A page can come back with fewer than `limit` voices, and a short
+        page - an empty one included - is not the end of the list. Keep
+        following `next_cursor` while `has_more` is true.
 
         Parameters
         ----------
@@ -86,6 +94,22 @@ class RawVoicesClient:
             Filter to voices that support this model (as listed in each voice's
             `models[]`), e.g. `simba-3.2`. Omit to return voices for all models.
 
+        project_id : typing.Optional[str]
+            Filter cloned voices by workspace project: omit for every voice you
+            can reach, pass the literal `shared` for the clones no project
+            filed, or a `proj_...` id for the clones filed under that project.
+            The shared catalog carries no project and is returned either way.
+
+            A clone is filed under a project when a project-pinned key created
+            it. A clone with no project is shared with the whole workspace
+            rather than sitting in a Default project, so the literal here is
+            `shared`, never `default` - passing `default` is a 400. Returns 404
+            project_not_found for a malformed id and for any project outside
+            your reach: a project-pinned key reaches only its pinned project,
+            and a member holding project grants reaches only the granted ones.
+            That 404 is the same in every case and does not reveal whether such
+            a project exists. `shared` is always inside your reach.
+
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -96,6 +120,7 @@ class RawVoicesClient:
         """
         _response = self._client_wrapper.httpx_client.request(
             "v1/voices",
+            base_url=self._client_wrapper.get_environment().base,
             method="GET",
             params={
                 "cursor": cursor,
@@ -104,6 +129,7 @@ class RawVoicesClient:
                 "locale": locale,
                 "gender": gender,
                 "model": model,
+                "project_id": project_id,
             },
             request_options=request_options,
         )
@@ -126,6 +152,7 @@ class RawVoicesClient:
                     locale=locale,
                     gender=gender,
                     model=model,
+                    project_id=project_id,
                     request_options=request_options,
                 )
                 return SyncPager(has_next=_has_next, items=_items, get_next=_get_next, response=_parsed_response)
@@ -211,9 +238,11 @@ class RawVoicesClient:
 
         Cloning requires proof that the speaker agreed to it. Create a consent challenge with `POST /v1/voices/consent-challenges`, show the returned `phrase` to the speaker, record them reading it aloud, and send that recording here as `consent_recording` together with the challenge's `consent_challenge_id`. Speechify transcribes the recording, checks it against the phrase it issued, checks that its speaker is the speaker in your `sample`, and keeps it as the consent record for the voice. The person consenting therefore has to be the person being cloned. A challenge is single use and short-lived, so record and submit in one sitting.
 
-        The clone belongs to the workspace rather than the member who created it, and access follows the caller's workspace role and API-key scopes exactly as for any other voice: voices scopes to list it, audio scopes to synthesize with it, and the content-management permission plus a write scope on the key to delete it. Cloned voices are usable self-serve on `simba-3.0`, `simba-english` and `simba-multilingual`. `simba-3.2` also serves cloned voices, currently as a limited release enabled per workspace; contact Speechify to have it enabled for yours.
+        The clone belongs to the workspace rather than the member who created it, and access follows the caller's workspace role and API-key scopes exactly as for any other voice: voices scopes to list it, audio scopes to synthesize with it, and the content-management permission plus a write scope on the key to delete it. Cloned voices are usable self-serve on `simba-3.0` (and, on a workspace pinned before API version `2026-09-21`, on the retired `simba-english` and `simba-multilingual`, which from 2026-11-21 are served by our current models and still take cloned voices). `simba-3.2` and `simba-3.5` also serve cloned voices.
 
-        Callers pinned before `Speechify-Version: 2026-09-13` use the previous flow instead: no challenge, and a `consent` form field carrying the speaker's name and email as a JSON string. That flow is deprecated and will be removed after a sunset window announced in the changelog.
+        The previous flow, a `consent` form field carrying the speaker's name and email as a JSON string, was switched off on 2026-09-23 for every API version: a create that sends `consent` and no `consent_challenge_id` returns 400 `consent_verification_required`.
+
+        Voice cloning is not available in some jurisdictions. A request from one returns 403 `voice_cloning_unavailable_in_region` before consent verification runs, so it does not spend the challenge. The location is read from the IP address that sends the request, which is your server's when your backend calls the API; a location header in the request is ignored.
 
         Parameters
         ----------
@@ -265,6 +294,7 @@ class RawVoicesClient:
         )
         _response = self._client_wrapper.httpx_client.request(
             "v1/voices",
+            base_url=self._client_wrapper.get_environment().base,
             method="POST",
             data={
                 "name": name,
@@ -446,6 +476,7 @@ class RawVoicesClient:
         """
         _response = self._client_wrapper.httpx_client.request(
             f"v1/voices/{encode_path_param(voice_id)}",
+            base_url=self._client_wrapper.get_environment().base,
             method="GET",
             request_options=request_options,
         )
@@ -551,6 +582,10 @@ class RawVoicesClient:
         `content.manage` permission (owner, admin, or member); a
         service-account key is authorized by its scopes instead.
 
+        A voice that is also a member's personal voice (one cloned
+        before workspaces owned voices and adopted into this workspace)
+        is removed from the workspace only; the person keeps it.
+
         Parameters
         ----------
         voice_id : str
@@ -565,6 +600,7 @@ class RawVoicesClient:
         """
         _response = self._client_wrapper.httpx_client.request(
             f"v1/voices/{encode_path_param(voice_id)}",
+            base_url=self._client_wrapper.get_environment().base,
             method="DELETE",
             request_options=request_options,
         )
@@ -690,6 +726,7 @@ class RawVoicesClient:
         """
         with self._client_wrapper.httpx_client.stream(
             f"v1/voices/{encode_path_param(voice_id)}/sample",
+            base_url=self._client_wrapper.get_environment().base,
             method="GET",
             request_options=request_options,
         ) as _response:
@@ -820,17 +857,25 @@ class AsyncRawVoicesClient:
         locale: typing.Optional[str] = None,
         gender: typing.Optional[ListVoicesRequestGender] = None,
         model: typing.Optional[str] = None,
+        project_id: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncPager[GetVoice, ListVoicesResponse]:
         """
         Lists the voices available to the caller - the shared voice
-        catalog plus the workspace's cloned voices, whichever member or
-        service-account key created them. By default
-        the full catalogue is returned in one response. Pagination is
-        opt-in: pass `limit` (and then `cursor` from the previous
-        response) to page through the list while `has_more` is true. Max
-        page size is 200. Narrow the list with the `type` and `locale`
-        filters (applied before pagination, so pages stay full).
+        catalog plus the cloned voices they can reach, whichever member or
+        service-account key created them. A clone filed under a project is
+        listed only for a caller who can reach that project; a clone no
+        project filed is shared with the whole workspace and is listed for
+        everyone in it. The list is paged: a request without `limit`
+        returns the first 50 voices, and `limit` raises that to at most
+        200. Pass `cursor` from the previous response to fetch the next
+        page while `has_more` is true. API versions before 2026-07-16
+        returned the whole catalogue when `limit` was omitted. Narrow the
+        list with the `type` and `locale` filters.
+
+        A page can come back with fewer than `limit` voices, and a short
+        page - an empty one included - is not the end of the list. Keep
+        following `next_cursor` while `has_more` is true.
 
         Parameters
         ----------
@@ -856,6 +901,22 @@ class AsyncRawVoicesClient:
             Filter to voices that support this model (as listed in each voice's
             `models[]`), e.g. `simba-3.2`. Omit to return voices for all models.
 
+        project_id : typing.Optional[str]
+            Filter cloned voices by workspace project: omit for every voice you
+            can reach, pass the literal `shared` for the clones no project
+            filed, or a `proj_...` id for the clones filed under that project.
+            The shared catalog carries no project and is returned either way.
+
+            A clone is filed under a project when a project-pinned key created
+            it. A clone with no project is shared with the whole workspace
+            rather than sitting in a Default project, so the literal here is
+            `shared`, never `default` - passing `default` is a 400. Returns 404
+            project_not_found for a malformed id and for any project outside
+            your reach: a project-pinned key reaches only its pinned project,
+            and a member holding project grants reaches only the granted ones.
+            That 404 is the same in every case and does not reveal whether such
+            a project exists. `shared` is always inside your reach.
+
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -866,6 +927,7 @@ class AsyncRawVoicesClient:
         """
         _response = await self._client_wrapper.httpx_client.request(
             "v1/voices",
+            base_url=self._client_wrapper.get_environment().base,
             method="GET",
             params={
                 "cursor": cursor,
@@ -874,6 +936,7 @@ class AsyncRawVoicesClient:
                 "locale": locale,
                 "gender": gender,
                 "model": model,
+                "project_id": project_id,
             },
             request_options=request_options,
         )
@@ -898,6 +961,7 @@ class AsyncRawVoicesClient:
                         locale=locale,
                         gender=gender,
                         model=model,
+                        project_id=project_id,
                         request_options=request_options,
                     )
 
@@ -984,9 +1048,11 @@ class AsyncRawVoicesClient:
 
         Cloning requires proof that the speaker agreed to it. Create a consent challenge with `POST /v1/voices/consent-challenges`, show the returned `phrase` to the speaker, record them reading it aloud, and send that recording here as `consent_recording` together with the challenge's `consent_challenge_id`. Speechify transcribes the recording, checks it against the phrase it issued, checks that its speaker is the speaker in your `sample`, and keeps it as the consent record for the voice. The person consenting therefore has to be the person being cloned. A challenge is single use and short-lived, so record and submit in one sitting.
 
-        The clone belongs to the workspace rather than the member who created it, and access follows the caller's workspace role and API-key scopes exactly as for any other voice: voices scopes to list it, audio scopes to synthesize with it, and the content-management permission plus a write scope on the key to delete it. Cloned voices are usable self-serve on `simba-3.0`, `simba-english` and `simba-multilingual`. `simba-3.2` also serves cloned voices, currently as a limited release enabled per workspace; contact Speechify to have it enabled for yours.
+        The clone belongs to the workspace rather than the member who created it, and access follows the caller's workspace role and API-key scopes exactly as for any other voice: voices scopes to list it, audio scopes to synthesize with it, and the content-management permission plus a write scope on the key to delete it. Cloned voices are usable self-serve on `simba-3.0` (and, on a workspace pinned before API version `2026-09-21`, on the retired `simba-english` and `simba-multilingual`, which from 2026-11-21 are served by our current models and still take cloned voices). `simba-3.2` and `simba-3.5` also serve cloned voices.
 
-        Callers pinned before `Speechify-Version: 2026-09-13` use the previous flow instead: no challenge, and a `consent` form field carrying the speaker's name and email as a JSON string. That flow is deprecated and will be removed after a sunset window announced in the changelog.
+        The previous flow, a `consent` form field carrying the speaker's name and email as a JSON string, was switched off on 2026-09-23 for every API version: a create that sends `consent` and no `consent_challenge_id` returns 400 `consent_verification_required`.
+
+        Voice cloning is not available in some jurisdictions. A request from one returns 403 `voice_cloning_unavailable_in_region` before consent verification runs, so it does not spend the challenge. The location is read from the IP address that sends the request, which is your server's when your backend calls the API; a location header in the request is ignored.
 
         Parameters
         ----------
@@ -1038,6 +1104,7 @@ class AsyncRawVoicesClient:
         )
         _response = await self._client_wrapper.httpx_client.request(
             "v1/voices",
+            base_url=self._client_wrapper.get_environment().base,
             method="POST",
             data={
                 "name": name,
@@ -1221,6 +1288,7 @@ class AsyncRawVoicesClient:
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"v1/voices/{encode_path_param(voice_id)}",
+            base_url=self._client_wrapper.get_environment().base,
             method="GET",
             request_options=request_options,
         )
@@ -1328,6 +1396,10 @@ class AsyncRawVoicesClient:
         `content.manage` permission (owner, admin, or member); a
         service-account key is authorized by its scopes instead.
 
+        A voice that is also a member's personal voice (one cloned
+        before workspaces owned voices and adopted into this workspace)
+        is removed from the workspace only; the person keeps it.
+
         Parameters
         ----------
         voice_id : str
@@ -1342,6 +1414,7 @@ class AsyncRawVoicesClient:
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"v1/voices/{encode_path_param(voice_id)}",
+            base_url=self._client_wrapper.get_environment().base,
             method="DELETE",
             request_options=request_options,
         )
@@ -1467,6 +1540,7 @@ class AsyncRawVoicesClient:
         """
         async with self._client_wrapper.httpx_client.stream(
             f"v1/voices/{encode_path_param(voice_id)}/sample",
+            base_url=self._client_wrapper.get_environment().base,
             method="GET",
             request_options=request_options,
         ) as _response:

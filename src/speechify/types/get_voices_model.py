@@ -10,7 +10,14 @@ from .get_voices_model_name import GetVoicesModelName
 
 class GetVoicesModel(UniversalBaseModel):
     languages: typing.List[GetVoiceLanguage]
-    name: GetVoicesModelName
+    name: GetVoicesModelName = pydantic.Field()
+    """
+    A model this voice can be synthesized with. The set is filtered to
+    what YOUR workspace's API version can select, so a voice never
+    advertises a model your own synthesis request would reject. The
+    legacy `simba-english` / `simba-multilingual` values appear only for
+    a workspace pinned before API version `2026-09-21`.
+    """
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

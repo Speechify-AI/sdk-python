@@ -8,7 +8,10 @@ from importlib import import_module
 if typing.TYPE_CHECKING:
     from .audio_output_format import AudioOutputFormat
     from .audio_stream_output_format import AudioStreamOutputFormat
+    from .billing_entitlements import BillingEntitlements
+    from .billing_entitlements_max_llm_model_class import BillingEntitlementsMaxLlmModelClass
     from .consent_challenge import ConsentChallenge
+    from .entitlements_response import EntitlementsResponse
     from .error import Error
     from .error_code import ErrorCode
     from .error_detail import ErrorDetail
@@ -24,11 +27,31 @@ if typing.TYPE_CHECKING:
     from .get_voice_type import GetVoiceType
     from .get_voices_model import GetVoicesModel
     from .get_voices_model_name import GetVoicesModelName
+    from .list_projects_response import ListProjectsResponse
     from .list_voices_response import ListVoicesResponse
+    from .list_webhook_endpoint_deliveries_response import ListWebhookEndpointDeliveriesResponse
+    from .list_webhook_endpoints_response import ListWebhookEndpointsResponse
     from .model import Model
     from .models_response import ModelsResponse
     from .nested_chunk import NestedChunk
     from .pagination_meta import PaginationMeta
+    from .project import Project
+    from .project_audit_event import ProjectAuditEvent
+    from .project_audit_event_type import ProjectAuditEventType
+    from .project_audit_response import ProjectAuditResponse
+    from .project_member import ProjectMember
+    from .project_members_response import ProjectMembersResponse
+    from .project_monthly_budget_status import ProjectMonthlyBudgetStatus
+    from .project_restore import ProjectRestore
+    from .project_still_revoked_counts import ProjectStillRevokedCounts
+    from .pronunciation import Pronunciation
+    from .pronunciation_alias import PronunciationAlias
+    from .pronunciation_case_sensitive import PronunciationCaseSensitive
+    from .pronunciation_ipa import PronunciationIpa
+    from .pronunciation_ipa_text import PronunciationIpaText
+    from .pronunciation_text import PronunciationText
+    from .pronunciations import Pronunciations
+    from .safety_identifier import SafetyIdentifier
     from .speech_chunk_event import SpeechChunkEvent
     from .speech_done_event import SpeechDoneEvent
     from .speech_error_event import SpeechErrorEvent
@@ -39,10 +62,18 @@ if typing.TYPE_CHECKING:
         SpeechStreamEvent_SpeechDone,
         SpeechStreamEvent_SpeechError,
     )
+    from .watermark_detection_response import WatermarkDetectionResponse
+    from .watermark_verification_response import WatermarkVerificationResponse
+    from .webhook_delivery_status import WebhookDeliveryStatus
+    from .webhook_endpoint import WebhookEndpoint
+    from .webhook_endpoint_delivery import WebhookEndpointDelivery
 _dynamic_imports: typing.Dict[str, str] = {
     "AudioOutputFormat": ".audio_output_format",
     "AudioStreamOutputFormat": ".audio_stream_output_format",
+    "BillingEntitlements": ".billing_entitlements",
+    "BillingEntitlementsMaxLlmModelClass": ".billing_entitlements_max_llm_model_class",
     "ConsentChallenge": ".consent_challenge",
+    "EntitlementsResponse": ".entitlements_response",
     "Error": ".error",
     "ErrorCode": ".error_code",
     "ErrorDetail": ".error_detail",
@@ -58,11 +89,31 @@ _dynamic_imports: typing.Dict[str, str] = {
     "GetVoiceType": ".get_voice_type",
     "GetVoicesModel": ".get_voices_model",
     "GetVoicesModelName": ".get_voices_model_name",
+    "ListProjectsResponse": ".list_projects_response",
     "ListVoicesResponse": ".list_voices_response",
+    "ListWebhookEndpointDeliveriesResponse": ".list_webhook_endpoint_deliveries_response",
+    "ListWebhookEndpointsResponse": ".list_webhook_endpoints_response",
     "Model": ".model",
     "ModelsResponse": ".models_response",
     "NestedChunk": ".nested_chunk",
     "PaginationMeta": ".pagination_meta",
+    "Project": ".project",
+    "ProjectAuditEvent": ".project_audit_event",
+    "ProjectAuditEventType": ".project_audit_event_type",
+    "ProjectAuditResponse": ".project_audit_response",
+    "ProjectMember": ".project_member",
+    "ProjectMembersResponse": ".project_members_response",
+    "ProjectMonthlyBudgetStatus": ".project_monthly_budget_status",
+    "ProjectRestore": ".project_restore",
+    "ProjectStillRevokedCounts": ".project_still_revoked_counts",
+    "Pronunciation": ".pronunciation",
+    "PronunciationAlias": ".pronunciation_alias",
+    "PronunciationCaseSensitive": ".pronunciation_case_sensitive",
+    "PronunciationIpa": ".pronunciation_ipa",
+    "PronunciationIpaText": ".pronunciation_ipa_text",
+    "PronunciationText": ".pronunciation_text",
+    "Pronunciations": ".pronunciations",
+    "SafetyIdentifier": ".safety_identifier",
     "SpeechChunkEvent": ".speech_chunk_event",
     "SpeechDoneEvent": ".speech_done_event",
     "SpeechErrorEvent": ".speech_error_event",
@@ -71,6 +122,11 @@ _dynamic_imports: typing.Dict[str, str] = {
     "SpeechStreamEvent_SpeechChunk": ".speech_stream_event",
     "SpeechStreamEvent_SpeechDone": ".speech_stream_event",
     "SpeechStreamEvent_SpeechError": ".speech_stream_event",
+    "WatermarkDetectionResponse": ".watermark_detection_response",
+    "WatermarkVerificationResponse": ".watermark_verification_response",
+    "WebhookDeliveryStatus": ".webhook_delivery_status",
+    "WebhookEndpoint": ".webhook_endpoint",
+    "WebhookEndpointDelivery": ".webhook_endpoint_delivery",
 }
 
 
@@ -98,7 +154,10 @@ def __dir__():
 __all__ = [
     "AudioOutputFormat",
     "AudioStreamOutputFormat",
+    "BillingEntitlements",
+    "BillingEntitlementsMaxLlmModelClass",
     "ConsentChallenge",
+    "EntitlementsResponse",
     "Error",
     "ErrorCode",
     "ErrorDetail",
@@ -114,11 +173,31 @@ __all__ = [
     "GetVoiceType",
     "GetVoicesModel",
     "GetVoicesModelName",
+    "ListProjectsResponse",
     "ListVoicesResponse",
+    "ListWebhookEndpointDeliveriesResponse",
+    "ListWebhookEndpointsResponse",
     "Model",
     "ModelsResponse",
     "NestedChunk",
     "PaginationMeta",
+    "Project",
+    "ProjectAuditEvent",
+    "ProjectAuditEventType",
+    "ProjectAuditResponse",
+    "ProjectMember",
+    "ProjectMembersResponse",
+    "ProjectMonthlyBudgetStatus",
+    "ProjectRestore",
+    "ProjectStillRevokedCounts",
+    "Pronunciation",
+    "PronunciationAlias",
+    "PronunciationCaseSensitive",
+    "PronunciationIpa",
+    "PronunciationIpaText",
+    "PronunciationText",
+    "Pronunciations",
+    "SafetyIdentifier",
     "SpeechChunkEvent",
     "SpeechDoneEvent",
     "SpeechErrorEvent",
@@ -127,4 +206,9 @@ __all__ = [
     "SpeechStreamEvent_SpeechChunk",
     "SpeechStreamEvent_SpeechDone",
     "SpeechStreamEvent_SpeechError",
+    "WatermarkDetectionResponse",
+    "WatermarkVerificationResponse",
+    "WebhookDeliveryStatus",
+    "WebhookEndpoint",
+    "WebhookEndpointDelivery",
 ]
