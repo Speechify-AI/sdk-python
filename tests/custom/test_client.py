@@ -5,7 +5,7 @@ import typing
 import httpx
 import pytest
 
-from speechify import AsyncSpeechify, ContentTooLargeError, Speechify, SpeechifyEnvironment
+from speechify import AsyncSpeechify, ContentTooLargeError, Speechify, SpeechifyEnvironment, UnauthorizedError
 from speechify.types.speech_stream_event import SpeechStreamEvent_SpeechChunk, SpeechStreamEvent_SpeechDone
 
 _RESPONSES: typing.Dict[str, typing.Dict[str, typing.Any]] = {
@@ -19,6 +19,11 @@ _RESPONSES: typing.Dict[str, typing.Dict[str, typing.Any]] = {
     "/v1/voices": {"voices": [], "has_more": False},
 }
 
+_ERRORS: typing.Dict[int, typing.Dict[str, str]] = {
+    401: {"code": "unauthorized", "message": "Unauthorized"},
+    413: {"code": "payload_too_large", "message": "too large"},
+}
+
 # Framed exactly as the API writes it: a named event, one data line, a blank line.
 _SSE = (
     'event: speech.chunk\ndata: {"type":"speech.chunk","audio":"AAAA"}\n\n'
@@ -30,7 +35,7 @@ def _transport(seen: typing.List[httpx.Request], status: int = 200) -> httpx.Moc
     def respond(request: httpx.Request) -> httpx.Response:
         seen.append(request)
         if status != 200:
-            return httpx.Response(status, json={"error": {"code": "payload_too_large", "message": "too large"}})
+            return httpx.Response(status, json={"error": _ERRORS[status]})
         if request.url.path == "/v1/audio/stream/with-timestamps":
             return httpx.Response(200, content=_SSE.encode(), headers={"Content-Type": "text/event-stream"})
         return httpx.Response(200, json=_RESPONSES[request.url.path])
@@ -97,8 +102,50 @@ async def test_async_speech_goes_to_api_speechify_ai() -> None:
 def test_a_client_without_a_key_sends_no_authorization(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("SPEECHIFY_API_KEY", raising=False)
     seen: typing.List[httpx.Request] = []
-    client = Speechify(token=None, httpx_client=httpx.Client(transport=_transport(seen)))
+    client = Speechify(httpx_client=httpx.Client(transport=_transport(seen)))
 
     client.models.list()
 
     assert "Authorization" not in seen[0].headers
+
+
+def test_an_authenticated_call_without_a_key_raises_unauthorized(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("SPEECHIFY_API_KEY", raising=False)
+    client = Speechify(httpx_client=httpx.Client(transport=_transport([], status=401)))
+
+    with pytest.raises(UnauthorizedError) as raised:
+        client.audio.speech(input="Hello", voice_id="geffen_32")
+
+    assert raised.value.status_code == 401
+
+
+# The module is imported above, so this key is set after import: the client
+# reads SPEECHIFY_API_KEY when it is constructed.
+def test_a_key_set_after_import_is_used(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("SPEECHIFY_API_KEY", "env-token")
+    seen: typing.List[httpx.Request] = []
+    client = Speechify(httpx_client=httpx.Client(transport=_transport(seen)))
+
+    client.models.list()
+
+    assert seen[0].headers["Authorization"] == "Bearer env-token"
+
+
+async def test_async_a_key_set_after_import_is_used(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("SPEECHIFY_API_KEY", "env-token")
+    seen: typing.List[httpx.Request] = []
+    client = AsyncSpeechify(httpx_client=httpx.AsyncClient(transport=_transport(seen)))
+
+    await client.models.list()
+
+    assert seen[0].headers["Authorization"] == "Bearer env-token"
+
+
+def test_an_explicit_token_wins_over_the_environment(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("SPEECHIFY_API_KEY", "env-token")
+    seen: typing.List[httpx.Request] = []
+    client = Speechify(token="test-token", httpx_client=httpx.Client(transport=_transport(seen)))
+
+    client.models.list()
+
+    assert seen[0].headers["Authorization"] == "Bearer test-token"
