@@ -16,7 +16,6 @@ The Speechify Python library provides convenient access to the Speechify APIs fr
 - [Exception Handling](#exception-handling)
 - [Streaming](#streaming)
 - [Pagination](#pagination)
-- [Websockets](#websockets)
 - [Advanced](#advanced)
   - [Access Raw Response Data](#access-raw-response-data)
   - [Retries](#retries)
@@ -52,7 +51,7 @@ client = Speechify(
 client.audio.speech(
     audio_format="mp3",
     input="Hello! This is the Speechify text-to-speech API.",
-    model="simba-3.2",
+    model="simba-3.5",
     voice_id="geffen_32",
 )
 ```
@@ -88,7 +87,7 @@ async def main() -> None:
     await client.audio.speech(
         audio_format="mp3",
         input="Hello! This is the Speechify text-to-speech API.",
-        model="simba-3.2",
+        model="simba-3.5",
         voice_id="geffen_32",
     )
 
@@ -124,7 +123,7 @@ client = Speechify(
 
 client.audio.stream_with_timestamps(
     input="Streaming long-form audio with the Speechify API.",
-    model="simba-3.2",
+    model="simba-3.5",
     voice_id="geffen_32",
 )
 ```
@@ -142,7 +141,7 @@ client = Speechify(
 
 client.voices.list(
     locale="en",
-    model="simba-3.2",
+    model="simba-3.5",
     project_id="proj_01arz3ndektsv4rrffq69g5fav",
 )
 ```
@@ -154,36 +153,6 @@ for page in pager.iter_pages():
     print(page.response)  # access the typed response for each page
     for item in page:
         print(item)
-```
-
-## Websockets
-
-The SDK supports both sync and async websocket connections for real-time, low-latency communication. Sockets can be created using the `connect` method, which returns a context manager. 
-You can either iterate through the returned `SocketClient` to process messages as they arrive, or attach handlers to respond to specific events.
-
-```python
-from speechify import Speechify
-
-client = Speechify(...)
-
-# Connect to the websocket (Sync)
-with client.audio.stream_input(...) as socket:
-    # Iterate over the messages as they arrive
-    for message in socket:
-        print(message)
-
-    # Or, attach handlers to specific events
-    socket.on(EventType.MESSAGE, lambda message: print("received message", message))
-
-import asyncio
-from speechify import AsyncSpeechify
-
-client = AsyncSpeechify(...)
-
-# Connect to the websocket (Async)
-async with client.audio.stream_input(...) as socket:
-    async for message in socket:
-        print(message)
 ```
 
 ## Advanced
