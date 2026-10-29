@@ -1,5 +1,16 @@
 # Changelog
 
+## [5.0.0](https://github.com/Speechify-AI/sdk-python/compare/4.0.0...5.0.0) (2026-10-29)
+
+
+### ⚠ BREAKING CHANGES
+
+* API version 2026-09-30 is the default, SpeechifyEnvironment is a class with base and websocket URLs, and base_url is removed. See PR #38 for the migration.
+
+### Features
+
+* regenerate SDK for API 2026-09-30 with simba-3.5 ([62f7ef7](https://github.com/Speechify-AI/sdk-python/commit/62f7ef73db0394cbaf9916e0d204f97d43e9d321))
+
 ## [4.0.0](https://github.com/Speechify-AI/sdk-python/compare/3.0.1...4.0.0) (2026-08-18)
 
 
