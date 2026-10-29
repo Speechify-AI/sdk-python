@@ -51,7 +51,7 @@ client = Speechify(
 client.audio.speech(
     audio_format="mp3",
     input="Hello! This is the Speechify text-to-speech API.",
-    model="simba-3.2",
+    model="simba-3.5",
     voice_id="geffen_32",
 )
 ```
@@ -87,7 +87,7 @@ async def main() -> None:
     await client.audio.speech(
         audio_format="mp3",
         input="Hello! This is the Speechify text-to-speech API.",
-        model="simba-3.2",
+        model="simba-3.5",
         voice_id="geffen_32",
     )
 
@@ -123,7 +123,7 @@ client = Speechify(
 
 client.audio.stream_with_timestamps(
     input="Streaming long-form audio with the Speechify API.",
-    model="simba-3.2",
+    model="simba-3.5",
     voice_id="geffen_32",
 )
 ```
@@ -142,6 +142,7 @@ client = Speechify(
 client.voices.list(
     locale="en",
     model="simba-3.2",
+    project_id="proj_01arz3ndektsv4rrffq69g5fav",
 )
 ```
 
@@ -212,7 +213,7 @@ client = Speechify(..., timeout=20.0)
 
 # Override timeout for a specific method
 client.audio.speech(..., request_options={
-    "timeout_in_seconds": 1
+    "timeout": 1
 })
 ```
 

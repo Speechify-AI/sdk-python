@@ -17,6 +17,39 @@ class GetVoice(UniversalBaseModel):
     id: str
     models: typing.List[GetVoicesModel]
     preview_audio: typing.Optional[str] = None
+    project_id: typing.Optional[str] = pydantic.Field(default=None)
+    """
+    The workspace project this cloned voice is filed under, set when
+    a project-pinned key created it. Returned wherever a cloned voice
+    is: the list, a single-voice read, and the create response.
+    
+    Omitted for a shared-catalog voice and for a cloned voice no
+    project filed, which is shared with the whole workspace and
+    listed for every member of it.
+    """
+
+    can_manage: typing.Optional[bool] = pydantic.Field(default=None)
+    """
+    Whether this workspace may delete the voice and download its
+    sample through this API. `true` for a cloned voice the workspace
+    owns. `false` for a shared-catalog voice, and for a cloned voice
+    that reaches this workspace only through its creator's personal
+    account (a voice cloned before workspace ownership, or under
+    another Speechify product), which is managed where it was made.
+    """
+
+    staff_pick_rank: typing.Optional[int] = pydantic.Field(default=None)
+    """
+    This voice's place among the staff picks for its `locale`: `1`
+    is the voice Speechify recommends first for that language, `2`
+    the next, and so on. Omitted for a voice that is not a staff
+    pick, and always for a cloned voice.
+    
+    Simba 3.5 sounds best with a voice native to the language you
+    generate, so to choose a voice for a language, filter by
+    `locale` and start from its lowest `staff_pick_rank`.
+    """
+
     tags: typing.Optional[typing.List[str]] = None
     type: GetVoiceType
 

@@ -1,7 +1,7 @@
 {
-  "cliVersion": "5.64.0",
+  "cliVersion": "5.128.0",
   "generatorName": "fernapi/fern-python-sdk",
-  "generatorVersion": "5.14.20",
+  "generatorVersion": "5.41.10",
   "generatorConfig": {
     "package_name": "speechify",
     "client": {
@@ -9,9 +9,9 @@
     },
     "pyproject_python_version": ">=3.9"
   },
-  "originGitCommit": "469722e153faa1a1c50aa63ea9cdca853f588721",
+  "originGitCommit": "14383dab6762a97b9dab9778796ac2b4c41cdd6d",
   "originGitCommitIsDirty": false,
-  "invokedBy": "manual",
-  "requestedVersion": "4.0.0",
+  "invokedBy": "ci",
+  "ciProvider": "github",
   "sdkVersion": "4.0.0"
 }

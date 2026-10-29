@@ -2,7 +2,10 @@
 
 This is a **Fern-generated** SDK. It is published to **PyPI** as `speechify-api`.
 The source of truth for the API surface lives in the `SpeechifyInc/speechify-api`
-repo (`fern/`); this repo receives generated code on the `sdk-release` branch.
+repo (`fern/`). Each regeneration arrives as a Fern pull request against `main`
+(`mode: pull-request` in that repo's `fern/generators.yml`); before that switch,
+Fern pushed to an `sdk-release` branch that went unmerged from August to October
+2026. See "After every Fern regeneration" below.
 
 **Read this before doing anything that touches a release.** A botched release here
 publishes to an immutable public registry and breaks the contract with every
@@ -142,7 +145,17 @@ the next release stamps over you anyway. Leave them alone.
 
 `.github/workflows/ci.yml`, `.github/workflows/release-please.yml`,
 `.github/workflows/manual-publish.yml`, `release-please-config.json`,
-`.release-please-manifest.json`, `CHANGELOG.md`, `AGENTS.md`.
+`.release-please-manifest.json`, `CHANGELOG.md`, `AGENTS.md`, `LICENSE`,
+`context7.json`, `tests/custom/test_client.py`.
+
+`README.md` and `reference.md` are generated, not shielded: fix their content in
+the spec or in speechify-api's `fern/generators.yml` (`readme:`), never here.
+
+**The squash title decides the release.** Fern titles its PR "SDK
+regeneration", which release-please ignores. Retitle it `feat:` for additive
+changes, or `feat!:` with a `BREAKING CHANGE:` section for a break: a removed
+keyword argument, a changed type, or the default `Speechify-Version` moving (an
+unpinned caller's wire behaviour changes).
 
 These are **regenerated** and must be re-checked by hand every single time:
 

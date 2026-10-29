@@ -15,6 +15,8 @@ from ..core.request_options import RequestOptions
 from ..core.serialization import convert_and_respect_annotation_metadata
 from ..errors.bad_gateway_error import BadGatewayError
 from ..errors.bad_request_error import BadRequestError
+from ..errors.conflict_error import ConflictError
+from ..errors.content_too_large_error import ContentTooLargeError
 from ..errors.forbidden_error import ForbiddenError
 from ..errors.internal_server_error import InternalServerError
 from ..errors.not_found_error import NotFoundError
@@ -29,6 +31,8 @@ from ..types.get_speech_options_request import GetSpeechOptionsRequest
 from ..types.get_speech_response import GetSpeechResponse
 from ..types.get_stream_options_request import GetStreamOptionsRequest
 from ..types.get_stream_request_model import GetStreamRequestModel
+from ..types.pronunciations import Pronunciations
+from ..types.safety_identifier import SafetyIdentifier
 from ..types.speech_stream_event import SpeechStreamEvent
 from .types.get_speech_request_audio_format import GetSpeechRequestAudioFormat
 from .types.get_speech_request_model import GetSpeechRequestModel
@@ -54,6 +58,8 @@ class RawAudioClient:
         model: typing.Optional[GetSpeechRequestModel] = OMIT,
         options: typing.Optional[GetSpeechOptionsRequest] = OMIT,
         output_format: typing.Optional[AudioOutputFormat] = OMIT,
+        pronunciations: typing.Optional[Pronunciations] = OMIT,
+        safety_identifier: typing.Optional[SafetyIdentifier] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[GetSpeechResponse]:
         """
@@ -67,8 +73,9 @@ class RawAudioClient:
         ----------
         input : str
             Plain text or SSML to be synthesized to speech.
+            Up to 2,000 characters of spoken text, the characters the request is billed for: SSML tags do not count. The input as sent, markup included, may be up to 20,000 characters.
             Refer to https://docs.speechify.ai/docs/api-limits for the input size limits.
-            Emotion, Pitch and Speed Rate are configured in the ssml input, please refer to the ssml documentation for more information: https://docs.speechify.ai/docs/ssml#prosody
+            SSML sets pauses (`<break>`), speaking rate, pitch and volume (`<prosody>`) and pronunciation (`<sub alias>`): see https://docs.speechify.ai/build/guides/text-to-speech/ssml for each tag. Emotion styles and emphasis are applied only by the Simba 1.6 models, until 2026-11-21; `simba-3.0`, `simba-3.2` and `simba-3.5` accept those tags without applying them.
 
         voice_id : str
             Id of the voice to be used for synthesizing speech. Refer to /v1/voices endpoint for available voices
@@ -81,12 +88,19 @@ class RawAudioClient:
             Please refer to the list of the supported languages and recommendations regarding this parameter: https://docs.speechify.ai/docs/language-support.
 
         model : typing.Optional[GetSpeechRequestModel]
-            Model used for audio synthesis. Defaults to `simba-3.0`, which is streaming-native and multilingual: it officially supports English plus `de-DE`, `es-ES`, `es-MX`, `fr-FR`, `it-IT` and `pt-BR`, and routes each request to its English or its multilingual training based on `language` (falling back to the voice's locale when `language` is omitted). `simba-3.2` is the streaming-native model with the lowest TTFB and richest expressivity, and the recommended Simba 3 model; it is English only, so a non-English voice returns 400. `simba-english` and `simba-multilingual` are the legacy Simba 1.6 models, kept for compatibility.
+            Model used for audio synthesis. Defaults to `simba-3.0`, which is streaming-native and multilingual: it officially supports English plus `de-DE`, `es-ES`, `es-MX`, `fr-FR`, `it-IT` and `pt-BR`, and routes each request to its English or its multilingual training based on `language` (falling back to the voice's locale when `language` is omitted). `simba-3.2` is the streaming-native model with the lowest TTFB and richest expressivity; it is English only, so a non-English voice returns 400. `simba-3.5` is the recommended model: streaming-native, covering 48 languages under one id, English included, routed by `language` like `simba-3.0`; every voice works on it, cloned voices included.
+
+            The legacy Simba 1.6 models `simba-english` and `simba-multilingual` are retired from API version `2026-09-21`: naming one returns 400 `model_retired`. Pinning your API version to a date before `2026-09-21` keeps them on their Simba 1.6 training until **2026-11-21**; from then both ids are served by our current models on every API version that can still name them. Migrate to `simba-3.2` (English), `simba-3.0` or `simba-3.5` before then; call GET /v1/audio/models to see the set your workspace can select today.
 
         options : typing.Optional[GetSpeechOptionsRequest]
 
         output_format : typing.Optional[AudioOutputFormat]
             The output audio format as a `codec_sampleRate_bitrate` string. Takes precedence over `audio_format` when set.
+
+        pronunciations : typing.Optional[Pronunciations]
+
+        safety_identifier : typing.Optional[SafetyIdentifier]
+            Optional. A stable, opaque identifier for the end user this request is made for: a hash of your own user id or an opaque id, never an email address or other personal data. It is recorded with the request even under zero data retention, and your workspace can be given per-end-user limits and a block list keyed on it. See https://docs.speechify.ai/build/guides/concepts/safety-identifiers.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -98,6 +112,7 @@ class RawAudioClient:
         """
         _response = self._client_wrapper.httpx_client.request(
             "v1/audio/speech",
+            base_url=self._client_wrapper.get_environment().base,
             method="POST",
             json={
                 "audio_format": audio_format,
@@ -108,6 +123,10 @@ class RawAudioClient:
                     object_=options, annotation=GetSpeechOptionsRequest, direction="write"
                 ),
                 "output_format": output_format,
+                "pronunciations": convert_and_respect_annotation_metadata(
+                    object_=pronunciations, annotation=Pronunciations, direction="write"
+                ),
+                "safety_identifier": safety_identifier,
                 "voice_id": voice_id,
             },
             headers={
@@ -181,6 +200,28 @@ class RawAudioClient:
                         ),
                     ),
                 )
+            if _response.status_code == 409:
+                raise ConflictError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        Error,
+                        parse_obj_as(
+                            type_=Error,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 429:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
@@ -245,6 +286,8 @@ class RawAudioClient:
         model: typing.Optional[GetStreamRequestModel] = OMIT,
         options: typing.Optional[GetStreamOptionsRequest] = OMIT,
         output_format: typing.Optional[AudioStreamOutputFormat] = OMIT,
+        pronunciations: typing.Optional[Pronunciations] = OMIT,
+        safety_identifier: typing.Optional[SafetyIdentifier] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.Iterator[HttpResponse[typing.Iterator[bytes]]]:
         """
@@ -260,8 +303,9 @@ class RawAudioClient:
         ----------
         input : str
             Plain text or SSML to be synthesized to speech.
+            Up to 20,000 characters of spoken text, the characters the request is billed for: SSML tags do not count. The input as sent, markup included, may be up to 32,000 characters.
             Refer to https://docs.speechify.ai/docs/api-limits for the input size limits.
-            Emotion, Pitch and Speed Rate are configured in the ssml input, please refer to the ssml documentation for more information: https://docs.speechify.ai/docs/ssml#prosody
+            SSML sets pauses (`<break>`), speaking rate, pitch and volume (`<prosody>`) and pronunciation (`<sub alias>`): see https://docs.speechify.ai/build/guides/text-to-speech/ssml for each tag. Emotion styles and emphasis are applied only by the Simba 1.6 models, until 2026-11-21; `simba-3.0`, `simba-3.2` and `simba-3.5` accept those tags without applying them.
 
         voice_id : str
             Id of the voice to be used for synthesizing speech. Refer to /v1/voices endpoint for available voices
@@ -280,12 +324,19 @@ class RawAudioClient:
             Please refer to the list of the supported languages and recommendations regarding this parameter: https://docs.speechify.ai/docs/language-support.
 
         model : typing.Optional[GetStreamRequestModel]
-            Model used for audio synthesis. Defaults to `simba-3.0`, which is streaming-native and multilingual: it officially supports English plus `de-DE`, `es-ES`, `es-MX`, `fr-FR`, `it-IT` and `pt-BR`, and routes each request to its English or its multilingual training based on `language` (falling back to the voice's locale when `language` is omitted). `simba-3.2` is the streaming-native model with the lowest TTFB and richest expressivity, and the recommended Simba 3 model; it is English only, so a non-English voice returns 400. `simba-english` and `simba-multilingual` are the legacy Simba 1.6 models, kept for compatibility.
+            Model used for audio synthesis. Defaults to `simba-3.0`, which is streaming-native and multilingual: it officially supports English plus `de-DE`, `es-ES`, `es-MX`, `fr-FR`, `it-IT` and `pt-BR`, and routes each request to its English or its multilingual training based on `language` (falling back to the voice's locale when `language` is omitted). `simba-3.2` is the streaming-native model with the lowest TTFB and richest expressivity; it is English only, so a non-English voice returns 400. `simba-3.5` is the recommended model: streaming-native, covering 48 languages under one id, English included, routed by `language` like `simba-3.0`; every voice works on it, cloned voices included.
+
+            The legacy Simba 1.6 models `simba-english` and `simba-multilingual` are retired from API version `2026-09-21`: naming one returns 400 `model_retired`. Pinning your API version to a date before `2026-09-21` keeps them on their Simba 1.6 training until **2026-11-21**; from then both ids are served by our current models on every API version that can still name them. Migrate to `simba-3.2` (English), `simba-3.0` or `simba-3.5` before then; call GET /v1/audio/models to see the set your workspace can select today.
 
         options : typing.Optional[GetStreamOptionsRequest]
 
         output_format : typing.Optional[AudioStreamOutputFormat]
             The output audio format as a `codec_sampleRate_bitrate` string. Takes precedence over the `Accept` header when set, so you can request formats the `Accept` enum does not cover (e.g. `pcm_16000`, `ulaw_8000`). `wav_*` formats are not supported on streaming - use `POST /v1/audio/speech` for wav.
+
+        pronunciations : typing.Optional[Pronunciations]
+
+        safety_identifier : typing.Optional[SafetyIdentifier]
+            Optional. A stable, opaque identifier for the end user this request is made for: a hash of your own user id or an opaque id, never an email address or other personal data. It is recorded with the request even under zero data retention, and your workspace can be given per-end-user limits and a block list keyed on it. See https://docs.speechify.ai/build/guides/concepts/safety-identifiers.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration. You can pass in configuration such as `chunk_size`, and more to customize the request and response.
@@ -297,10 +348,14 @@ class RawAudioClient:
             codec/sample rate; otherwise the Accept header does. The
             Content-Type reflects the selected format: it matches the Accept
             header, except raw PCM returns `audio/L16` (with rate and channels
-            parameters) and u-law returns `audio/basic`.
+            parameters) and u-law returns `audio/basic`. A content policy
+            refusal that lands after the audio has started aborts the
+            transfer, so the client raises instead of completing the body;
+            only a completed transfer was served in full.
         """
         with self._client_wrapper.httpx_client.stream(
             "v1/audio/stream",
+            base_url=self._client_wrapper.get_environment().base,
             method="POST",
             json={
                 "input": input,
@@ -310,6 +365,10 @@ class RawAudioClient:
                     object_=options, annotation=GetStreamOptionsRequest, direction="write"
                 ),
                 "output_format": output_format,
+                "pronunciations": convert_and_respect_annotation_metadata(
+                    object_=pronunciations, annotation=Pronunciations, direction="write"
+                ),
+                "safety_identifier": safety_identifier,
                 "voice_id": voice_id,
             },
             headers={
@@ -379,6 +438,28 @@ class RawAudioClient:
                                 typing.Any,
                                 parse_obj_as(
                                     type_=typing.Any,  # type: ignore
+                                    object_=_response.json(),
+                                ),
+                            ),
+                        )
+                    if _response.status_code == 409:
+                        raise ConflictError(
+                            headers=dict(_response.headers),
+                            body=typing.cast(
+                                typing.Any,
+                                parse_obj_as(
+                                    type_=typing.Any,  # type: ignore
+                                    object_=_response.json(),
+                                ),
+                            ),
+                        )
+                    if _response.status_code == 413:
+                        raise ContentTooLargeError(
+                            headers=dict(_response.headers),
+                            body=typing.cast(
+                                Error,
+                                parse_obj_as(
+                                    type_=Error,  # type: ignore
                                     object_=_response.json(),
                                 ),
                             ),
@@ -454,6 +535,8 @@ class RawAudioClient:
         model: typing.Optional[GetStreamRequestModel] = OMIT,
         options: typing.Optional[GetStreamOptionsRequest] = OMIT,
         output_format: typing.Optional[AudioStreamOutputFormat] = OMIT,
+        pronunciations: typing.Optional[Pronunciations] = OMIT,
+        safety_identifier: typing.Optional[SafetyIdentifier] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.Iterator[HttpResponse[typing.Iterator[SpeechStreamEvent]]]:
         """
@@ -476,19 +559,24 @@ class RawAudioClient:
         `output_format`: changing the codec or sample rate does not change the
         duration.
 
-        Speech marks are produced by the streaming-native models. The default
-        `simba-3.0` and `simba-3.2` both serve this route; the legacy
-        `simba-english` and `simba-multilingual` models return 400
-        `speech_marks_unsupported` here.
+        Every model this route accepts produces speech marks here. The default
+        `simba-3.0`, `simba-3.2` and `simba-3.5` stream marks word by word
+        alongside the audio. The legacy `simba-english` and `simba-multilingual` models,
+        still selectable on a workspace pinned before API version `2026-09-21`,
+        synthesize a sentence at a time, so their marks arrive a sentence at a
+        time with that sentence's audio; from that version on they return 400
+        `model_retired` on every synthesis route, and from 2026-11-21 both ids
+        are served by our current models.
         For Base64-encoded audio and speech marks in one non-streamed JSON
-        response, on any model, use POST /v1/audio/speech.
+        response, use POST /v1/audio/speech.
 
         Parameters
         ----------
         input : str
             Plain text or SSML to be synthesized to speech.
+            Up to 20,000 characters of spoken text, the characters the request is billed for: SSML tags do not count. The input as sent, markup included, may be up to 32,000 characters.
             Refer to https://docs.speechify.ai/docs/api-limits for the input size limits.
-            Emotion, Pitch and Speed Rate are configured in the ssml input, please refer to the ssml documentation for more information: https://docs.speechify.ai/docs/ssml#prosody
+            SSML sets pauses (`<break>`), speaking rate, pitch and volume (`<prosody>`) and pronunciation (`<sub alias>`): see https://docs.speechify.ai/build/guides/text-to-speech/ssml for each tag. Emotion styles and emphasis are applied only by the Simba 1.6 models, until 2026-11-21; `simba-3.0`, `simba-3.2` and `simba-3.5` accept those tags without applying them.
 
         voice_id : str
             Id of the voice to be used for synthesizing speech. Refer to /v1/voices endpoint for available voices
@@ -504,12 +592,19 @@ class RawAudioClient:
             Please refer to the list of the supported languages and recommendations regarding this parameter: https://docs.speechify.ai/docs/language-support.
 
         model : typing.Optional[GetStreamRequestModel]
-            Model used for audio synthesis. Defaults to `simba-3.0`, which is streaming-native and multilingual: it officially supports English plus `de-DE`, `es-ES`, `es-MX`, `fr-FR`, `it-IT` and `pt-BR`, and routes each request to its English or its multilingual training based on `language` (falling back to the voice's locale when `language` is omitted). `simba-3.2` is the streaming-native model with the lowest TTFB and richest expressivity, and the recommended Simba 3 model; it is English only, so a non-English voice returns 400. `simba-english` and `simba-multilingual` are the legacy Simba 1.6 models, kept for compatibility.
+            Model used for audio synthesis. Defaults to `simba-3.0`, which is streaming-native and multilingual: it officially supports English plus `de-DE`, `es-ES`, `es-MX`, `fr-FR`, `it-IT` and `pt-BR`, and routes each request to its English or its multilingual training based on `language` (falling back to the voice's locale when `language` is omitted). `simba-3.2` is the streaming-native model with the lowest TTFB and richest expressivity; it is English only, so a non-English voice returns 400. `simba-3.5` is the recommended model: streaming-native, covering 48 languages under one id, English included, routed by `language` like `simba-3.0`; every voice works on it, cloned voices included.
+
+            The legacy Simba 1.6 models `simba-english` and `simba-multilingual` are retired from API version `2026-09-21`: naming one returns 400 `model_retired`. Pinning your API version to a date before `2026-09-21` keeps them on their Simba 1.6 training until **2026-11-21**; from then both ids are served by our current models on every API version that can still name them. Migrate to `simba-3.2` (English), `simba-3.0` or `simba-3.5` before then; call GET /v1/audio/models to see the set your workspace can select today.
 
         options : typing.Optional[GetStreamOptionsRequest]
 
         output_format : typing.Optional[AudioStreamOutputFormat]
             The output audio format as a `codec_sampleRate_bitrate` string. Takes precedence over the `Accept` header when set, so you can request formats the `Accept` enum does not cover (e.g. `pcm_16000`, `ulaw_8000`). `wav_*` formats are not supported on streaming - use `POST /v1/audio/speech` for wav.
+
+        pronunciations : typing.Optional[Pronunciations]
+
+        safety_identifier : typing.Optional[SafetyIdentifier]
+            Optional. A stable, opaque identifier for the end user this request is made for: a hash of your own user id or an opaque id, never an email address or other personal data. It is recorded with the request even under zero data retention, and your workspace can be given per-end-user limits and a block list keyed on it. See https://docs.speechify.ai/build/guides/concepts/safety-identifiers.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -518,9 +613,10 @@ class RawAudioClient:
         ------
         typing.Iterator[HttpResponse[typing.Iterator[SpeechStreamEvent]]]
             A Server-Sent Events stream of `speech.chunk` events followed by one
-            terminal `speech.done` event. A failure after the stream has started
-            is delivered as a `speech.error` event carrying the standard error
-            envelope, because the status code is already committed.
+            terminal `speech.done` event. A failure after the stream has started,
+            including a `content_policy_violation` refusal, is delivered as a
+            `speech.error` event carrying the standard error envelope, because
+            the status code is already committed.
 
             The transport is `text/event-stream`: each event is an
             `event:`/`data:` pair whose `data` is one JSON payload matching the
@@ -530,6 +626,7 @@ class RawAudioClient:
         """
         with self._client_wrapper.httpx_client.stream(
             "v1/audio/stream/with-timestamps",
+            base_url=self._client_wrapper.get_environment().base,
             method="POST",
             json={
                 "input": input,
@@ -539,6 +636,10 @@ class RawAudioClient:
                     object_=options, annotation=GetStreamOptionsRequest, direction="write"
                 ),
                 "output_format": output_format,
+                "pronunciations": convert_and_respect_annotation_metadata(
+                    object_=pronunciations, annotation=Pronunciations, direction="write"
+                ),
+                "safety_identifier": safety_identifier,
                 "voice_id": voice_id,
             },
             headers={
@@ -558,6 +659,8 @@ class RawAudioClient:
                             for _sse in _event_source.iter_sse():
                                 if _sse.data == None:
                                     return
+                                if len(_sse.data) == 0:
+                                    continue
                                 try:
                                     yield typing.cast(
                                         SpeechStreamEvent,
@@ -631,6 +734,28 @@ class RawAudioClient:
                                 typing.Any,
                                 parse_obj_as(
                                     type_=typing.Any,  # type: ignore
+                                    object_=_response.json(),
+                                ),
+                            ),
+                        )
+                    if _response.status_code == 409:
+                        raise ConflictError(
+                            headers=dict(_response.headers),
+                            body=typing.cast(
+                                typing.Any,
+                                parse_obj_as(
+                                    type_=typing.Any,  # type: ignore
+                                    object_=_response.json(),
+                                ),
+                            ),
+                        )
+                    if _response.status_code == 413:
+                        raise ContentTooLargeError(
+                            headers=dict(_response.headers),
+                            body=typing.cast(
+                                Error,
+                                parse_obj_as(
+                                    type_=Error,  # type: ignore
                                     object_=_response.json(),
                                 ),
                             ),
@@ -710,6 +835,8 @@ class AsyncRawAudioClient:
         model: typing.Optional[GetSpeechRequestModel] = OMIT,
         options: typing.Optional[GetSpeechOptionsRequest] = OMIT,
         output_format: typing.Optional[AudioOutputFormat] = OMIT,
+        pronunciations: typing.Optional[Pronunciations] = OMIT,
+        safety_identifier: typing.Optional[SafetyIdentifier] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[GetSpeechResponse]:
         """
@@ -723,8 +850,9 @@ class AsyncRawAudioClient:
         ----------
         input : str
             Plain text or SSML to be synthesized to speech.
+            Up to 2,000 characters of spoken text, the characters the request is billed for: SSML tags do not count. The input as sent, markup included, may be up to 20,000 characters.
             Refer to https://docs.speechify.ai/docs/api-limits for the input size limits.
-            Emotion, Pitch and Speed Rate are configured in the ssml input, please refer to the ssml documentation for more information: https://docs.speechify.ai/docs/ssml#prosody
+            SSML sets pauses (`<break>`), speaking rate, pitch and volume (`<prosody>`) and pronunciation (`<sub alias>`): see https://docs.speechify.ai/build/guides/text-to-speech/ssml for each tag. Emotion styles and emphasis are applied only by the Simba 1.6 models, until 2026-11-21; `simba-3.0`, `simba-3.2` and `simba-3.5` accept those tags without applying them.
 
         voice_id : str
             Id of the voice to be used for synthesizing speech. Refer to /v1/voices endpoint for available voices
@@ -737,12 +865,19 @@ class AsyncRawAudioClient:
             Please refer to the list of the supported languages and recommendations regarding this parameter: https://docs.speechify.ai/docs/language-support.
 
         model : typing.Optional[GetSpeechRequestModel]
-            Model used for audio synthesis. Defaults to `simba-3.0`, which is streaming-native and multilingual: it officially supports English plus `de-DE`, `es-ES`, `es-MX`, `fr-FR`, `it-IT` and `pt-BR`, and routes each request to its English or its multilingual training based on `language` (falling back to the voice's locale when `language` is omitted). `simba-3.2` is the streaming-native model with the lowest TTFB and richest expressivity, and the recommended Simba 3 model; it is English only, so a non-English voice returns 400. `simba-english` and `simba-multilingual` are the legacy Simba 1.6 models, kept for compatibility.
+            Model used for audio synthesis. Defaults to `simba-3.0`, which is streaming-native and multilingual: it officially supports English plus `de-DE`, `es-ES`, `es-MX`, `fr-FR`, `it-IT` and `pt-BR`, and routes each request to its English or its multilingual training based on `language` (falling back to the voice's locale when `language` is omitted). `simba-3.2` is the streaming-native model with the lowest TTFB and richest expressivity; it is English only, so a non-English voice returns 400. `simba-3.5` is the recommended model: streaming-native, covering 48 languages under one id, English included, routed by `language` like `simba-3.0`; every voice works on it, cloned voices included.
+
+            The legacy Simba 1.6 models `simba-english` and `simba-multilingual` are retired from API version `2026-09-21`: naming one returns 400 `model_retired`. Pinning your API version to a date before `2026-09-21` keeps them on their Simba 1.6 training until **2026-11-21**; from then both ids are served by our current models on every API version that can still name them. Migrate to `simba-3.2` (English), `simba-3.0` or `simba-3.5` before then; call GET /v1/audio/models to see the set your workspace can select today.
 
         options : typing.Optional[GetSpeechOptionsRequest]
 
         output_format : typing.Optional[AudioOutputFormat]
             The output audio format as a `codec_sampleRate_bitrate` string. Takes precedence over `audio_format` when set.
+
+        pronunciations : typing.Optional[Pronunciations]
+
+        safety_identifier : typing.Optional[SafetyIdentifier]
+            Optional. A stable, opaque identifier for the end user this request is made for: a hash of your own user id or an opaque id, never an email address or other personal data. It is recorded with the request even under zero data retention, and your workspace can be given per-end-user limits and a block list keyed on it. See https://docs.speechify.ai/build/guides/concepts/safety-identifiers.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -754,6 +889,7 @@ class AsyncRawAudioClient:
         """
         _response = await self._client_wrapper.httpx_client.request(
             "v1/audio/speech",
+            base_url=self._client_wrapper.get_environment().base,
             method="POST",
             json={
                 "audio_format": audio_format,
@@ -764,6 +900,10 @@ class AsyncRawAudioClient:
                     object_=options, annotation=GetSpeechOptionsRequest, direction="write"
                 ),
                 "output_format": output_format,
+                "pronunciations": convert_and_respect_annotation_metadata(
+                    object_=pronunciations, annotation=Pronunciations, direction="write"
+                ),
+                "safety_identifier": safety_identifier,
                 "voice_id": voice_id,
             },
             headers={
@@ -837,6 +977,28 @@ class AsyncRawAudioClient:
                         ),
                     ),
                 )
+            if _response.status_code == 409:
+                raise ConflictError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        Error,
+                        parse_obj_as(
+                            type_=Error,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 429:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
@@ -901,6 +1063,8 @@ class AsyncRawAudioClient:
         model: typing.Optional[GetStreamRequestModel] = OMIT,
         options: typing.Optional[GetStreamOptionsRequest] = OMIT,
         output_format: typing.Optional[AudioStreamOutputFormat] = OMIT,
+        pronunciations: typing.Optional[Pronunciations] = OMIT,
+        safety_identifier: typing.Optional[SafetyIdentifier] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.AsyncIterator[AsyncHttpResponse[typing.AsyncIterator[bytes]]]:
         """
@@ -916,8 +1080,9 @@ class AsyncRawAudioClient:
         ----------
         input : str
             Plain text or SSML to be synthesized to speech.
+            Up to 20,000 characters of spoken text, the characters the request is billed for: SSML tags do not count. The input as sent, markup included, may be up to 32,000 characters.
             Refer to https://docs.speechify.ai/docs/api-limits for the input size limits.
-            Emotion, Pitch and Speed Rate are configured in the ssml input, please refer to the ssml documentation for more information: https://docs.speechify.ai/docs/ssml#prosody
+            SSML sets pauses (`<break>`), speaking rate, pitch and volume (`<prosody>`) and pronunciation (`<sub alias>`): see https://docs.speechify.ai/build/guides/text-to-speech/ssml for each tag. Emotion styles and emphasis are applied only by the Simba 1.6 models, until 2026-11-21; `simba-3.0`, `simba-3.2` and `simba-3.5` accept those tags without applying them.
 
         voice_id : str
             Id of the voice to be used for synthesizing speech. Refer to /v1/voices endpoint for available voices
@@ -936,12 +1101,19 @@ class AsyncRawAudioClient:
             Please refer to the list of the supported languages and recommendations regarding this parameter: https://docs.speechify.ai/docs/language-support.
 
         model : typing.Optional[GetStreamRequestModel]
-            Model used for audio synthesis. Defaults to `simba-3.0`, which is streaming-native and multilingual: it officially supports English plus `de-DE`, `es-ES`, `es-MX`, `fr-FR`, `it-IT` and `pt-BR`, and routes each request to its English or its multilingual training based on `language` (falling back to the voice's locale when `language` is omitted). `simba-3.2` is the streaming-native model with the lowest TTFB and richest expressivity, and the recommended Simba 3 model; it is English only, so a non-English voice returns 400. `simba-english` and `simba-multilingual` are the legacy Simba 1.6 models, kept for compatibility.
+            Model used for audio synthesis. Defaults to `simba-3.0`, which is streaming-native and multilingual: it officially supports English plus `de-DE`, `es-ES`, `es-MX`, `fr-FR`, `it-IT` and `pt-BR`, and routes each request to its English or its multilingual training based on `language` (falling back to the voice's locale when `language` is omitted). `simba-3.2` is the streaming-native model with the lowest TTFB and richest expressivity; it is English only, so a non-English voice returns 400. `simba-3.5` is the recommended model: streaming-native, covering 48 languages under one id, English included, routed by `language` like `simba-3.0`; every voice works on it, cloned voices included.
+
+            The legacy Simba 1.6 models `simba-english` and `simba-multilingual` are retired from API version `2026-09-21`: naming one returns 400 `model_retired`. Pinning your API version to a date before `2026-09-21` keeps them on their Simba 1.6 training until **2026-11-21**; from then both ids are served by our current models on every API version that can still name them. Migrate to `simba-3.2` (English), `simba-3.0` or `simba-3.5` before then; call GET /v1/audio/models to see the set your workspace can select today.
 
         options : typing.Optional[GetStreamOptionsRequest]
 
         output_format : typing.Optional[AudioStreamOutputFormat]
             The output audio format as a `codec_sampleRate_bitrate` string. Takes precedence over the `Accept` header when set, so you can request formats the `Accept` enum does not cover (e.g. `pcm_16000`, `ulaw_8000`). `wav_*` formats are not supported on streaming - use `POST /v1/audio/speech` for wav.
+
+        pronunciations : typing.Optional[Pronunciations]
+
+        safety_identifier : typing.Optional[SafetyIdentifier]
+            Optional. A stable, opaque identifier for the end user this request is made for: a hash of your own user id or an opaque id, never an email address or other personal data. It is recorded with the request even under zero data retention, and your workspace can be given per-end-user limits and a block list keyed on it. See https://docs.speechify.ai/build/guides/concepts/safety-identifiers.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration. You can pass in configuration such as `chunk_size`, and more to customize the request and response.
@@ -953,10 +1125,14 @@ class AsyncRawAudioClient:
             codec/sample rate; otherwise the Accept header does. The
             Content-Type reflects the selected format: it matches the Accept
             header, except raw PCM returns `audio/L16` (with rate and channels
-            parameters) and u-law returns `audio/basic`.
+            parameters) and u-law returns `audio/basic`. A content policy
+            refusal that lands after the audio has started aborts the
+            transfer, so the client raises instead of completing the body;
+            only a completed transfer was served in full.
         """
         async with self._client_wrapper.httpx_client.stream(
             "v1/audio/stream",
+            base_url=self._client_wrapper.get_environment().base,
             method="POST",
             json={
                 "input": input,
@@ -966,6 +1142,10 @@ class AsyncRawAudioClient:
                     object_=options, annotation=GetStreamOptionsRequest, direction="write"
                 ),
                 "output_format": output_format,
+                "pronunciations": convert_and_respect_annotation_metadata(
+                    object_=pronunciations, annotation=Pronunciations, direction="write"
+                ),
+                "safety_identifier": safety_identifier,
                 "voice_id": voice_id,
             },
             headers={
@@ -1036,6 +1216,28 @@ class AsyncRawAudioClient:
                                 typing.Any,
                                 parse_obj_as(
                                     type_=typing.Any,  # type: ignore
+                                    object_=_response.json(),
+                                ),
+                            ),
+                        )
+                    if _response.status_code == 409:
+                        raise ConflictError(
+                            headers=dict(_response.headers),
+                            body=typing.cast(
+                                typing.Any,
+                                parse_obj_as(
+                                    type_=typing.Any,  # type: ignore
+                                    object_=_response.json(),
+                                ),
+                            ),
+                        )
+                    if _response.status_code == 413:
+                        raise ContentTooLargeError(
+                            headers=dict(_response.headers),
+                            body=typing.cast(
+                                Error,
+                                parse_obj_as(
+                                    type_=Error,  # type: ignore
                                     object_=_response.json(),
                                 ),
                             ),
@@ -1111,6 +1313,8 @@ class AsyncRawAudioClient:
         model: typing.Optional[GetStreamRequestModel] = OMIT,
         options: typing.Optional[GetStreamOptionsRequest] = OMIT,
         output_format: typing.Optional[AudioStreamOutputFormat] = OMIT,
+        pronunciations: typing.Optional[Pronunciations] = OMIT,
+        safety_identifier: typing.Optional[SafetyIdentifier] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.AsyncIterator[AsyncHttpResponse[typing.AsyncIterator[SpeechStreamEvent]]]:
         """
@@ -1133,19 +1337,24 @@ class AsyncRawAudioClient:
         `output_format`: changing the codec or sample rate does not change the
         duration.
 
-        Speech marks are produced by the streaming-native models. The default
-        `simba-3.0` and `simba-3.2` both serve this route; the legacy
-        `simba-english` and `simba-multilingual` models return 400
-        `speech_marks_unsupported` here.
+        Every model this route accepts produces speech marks here. The default
+        `simba-3.0`, `simba-3.2` and `simba-3.5` stream marks word by word
+        alongside the audio. The legacy `simba-english` and `simba-multilingual` models,
+        still selectable on a workspace pinned before API version `2026-09-21`,
+        synthesize a sentence at a time, so their marks arrive a sentence at a
+        time with that sentence's audio; from that version on they return 400
+        `model_retired` on every synthesis route, and from 2026-11-21 both ids
+        are served by our current models.
         For Base64-encoded audio and speech marks in one non-streamed JSON
-        response, on any model, use POST /v1/audio/speech.
+        response, use POST /v1/audio/speech.
 
         Parameters
         ----------
         input : str
             Plain text or SSML to be synthesized to speech.
+            Up to 20,000 characters of spoken text, the characters the request is billed for: SSML tags do not count. The input as sent, markup included, may be up to 32,000 characters.
             Refer to https://docs.speechify.ai/docs/api-limits for the input size limits.
-            Emotion, Pitch and Speed Rate are configured in the ssml input, please refer to the ssml documentation for more information: https://docs.speechify.ai/docs/ssml#prosody
+            SSML sets pauses (`<break>`), speaking rate, pitch and volume (`<prosody>`) and pronunciation (`<sub alias>`): see https://docs.speechify.ai/build/guides/text-to-speech/ssml for each tag. Emotion styles and emphasis are applied only by the Simba 1.6 models, until 2026-11-21; `simba-3.0`, `simba-3.2` and `simba-3.5` accept those tags without applying them.
 
         voice_id : str
             Id of the voice to be used for synthesizing speech. Refer to /v1/voices endpoint for available voices
@@ -1161,12 +1370,19 @@ class AsyncRawAudioClient:
             Please refer to the list of the supported languages and recommendations regarding this parameter: https://docs.speechify.ai/docs/language-support.
 
         model : typing.Optional[GetStreamRequestModel]
-            Model used for audio synthesis. Defaults to `simba-3.0`, which is streaming-native and multilingual: it officially supports English plus `de-DE`, `es-ES`, `es-MX`, `fr-FR`, `it-IT` and `pt-BR`, and routes each request to its English or its multilingual training based on `language` (falling back to the voice's locale when `language` is omitted). `simba-3.2` is the streaming-native model with the lowest TTFB and richest expressivity, and the recommended Simba 3 model; it is English only, so a non-English voice returns 400. `simba-english` and `simba-multilingual` are the legacy Simba 1.6 models, kept for compatibility.
+            Model used for audio synthesis. Defaults to `simba-3.0`, which is streaming-native and multilingual: it officially supports English plus `de-DE`, `es-ES`, `es-MX`, `fr-FR`, `it-IT` and `pt-BR`, and routes each request to its English or its multilingual training based on `language` (falling back to the voice's locale when `language` is omitted). `simba-3.2` is the streaming-native model with the lowest TTFB and richest expressivity; it is English only, so a non-English voice returns 400. `simba-3.5` is the recommended model: streaming-native, covering 48 languages under one id, English included, routed by `language` like `simba-3.0`; every voice works on it, cloned voices included.
+
+            The legacy Simba 1.6 models `simba-english` and `simba-multilingual` are retired from API version `2026-09-21`: naming one returns 400 `model_retired`. Pinning your API version to a date before `2026-09-21` keeps them on their Simba 1.6 training until **2026-11-21**; from then both ids are served by our current models on every API version that can still name them. Migrate to `simba-3.2` (English), `simba-3.0` or `simba-3.5` before then; call GET /v1/audio/models to see the set your workspace can select today.
 
         options : typing.Optional[GetStreamOptionsRequest]
 
         output_format : typing.Optional[AudioStreamOutputFormat]
             The output audio format as a `codec_sampleRate_bitrate` string. Takes precedence over the `Accept` header when set, so you can request formats the `Accept` enum does not cover (e.g. `pcm_16000`, `ulaw_8000`). `wav_*` formats are not supported on streaming - use `POST /v1/audio/speech` for wav.
+
+        pronunciations : typing.Optional[Pronunciations]
+
+        safety_identifier : typing.Optional[SafetyIdentifier]
+            Optional. A stable, opaque identifier for the end user this request is made for: a hash of your own user id or an opaque id, never an email address or other personal data. It is recorded with the request even under zero data retention, and your workspace can be given per-end-user limits and a block list keyed on it. See https://docs.speechify.ai/build/guides/concepts/safety-identifiers.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1175,9 +1391,10 @@ class AsyncRawAudioClient:
         ------
         typing.AsyncIterator[AsyncHttpResponse[typing.AsyncIterator[SpeechStreamEvent]]]
             A Server-Sent Events stream of `speech.chunk` events followed by one
-            terminal `speech.done` event. A failure after the stream has started
-            is delivered as a `speech.error` event carrying the standard error
-            envelope, because the status code is already committed.
+            terminal `speech.done` event. A failure after the stream has started,
+            including a `content_policy_violation` refusal, is delivered as a
+            `speech.error` event carrying the standard error envelope, because
+            the status code is already committed.
 
             The transport is `text/event-stream`: each event is an
             `event:`/`data:` pair whose `data` is one JSON payload matching the
@@ -1187,6 +1404,7 @@ class AsyncRawAudioClient:
         """
         async with self._client_wrapper.httpx_client.stream(
             "v1/audio/stream/with-timestamps",
+            base_url=self._client_wrapper.get_environment().base,
             method="POST",
             json={
                 "input": input,
@@ -1196,6 +1414,10 @@ class AsyncRawAudioClient:
                     object_=options, annotation=GetStreamOptionsRequest, direction="write"
                 ),
                 "output_format": output_format,
+                "pronunciations": convert_and_respect_annotation_metadata(
+                    object_=pronunciations, annotation=Pronunciations, direction="write"
+                ),
+                "safety_identifier": safety_identifier,
                 "voice_id": voice_id,
             },
             headers={
@@ -1215,6 +1437,8 @@ class AsyncRawAudioClient:
                             async for _sse in _event_source.aiter_sse():
                                 if _sse.data == None:
                                     return
+                                if len(_sse.data) == 0:
+                                    continue
                                 try:
                                     yield typing.cast(
                                         SpeechStreamEvent,
@@ -1288,6 +1512,28 @@ class AsyncRawAudioClient:
                                 typing.Any,
                                 parse_obj_as(
                                     type_=typing.Any,  # type: ignore
+                                    object_=_response.json(),
+                                ),
+                            ),
+                        )
+                    if _response.status_code == 409:
+                        raise ConflictError(
+                            headers=dict(_response.headers),
+                            body=typing.cast(
+                                typing.Any,
+                                parse_obj_as(
+                                    type_=typing.Any,  # type: ignore
+                                    object_=_response.json(),
+                                ),
+                            ),
+                        )
+                    if _response.status_code == 413:
+                        raise ContentTooLargeError(
+                            headers=dict(_response.headers),
+                            body=typing.cast(
+                                Error,
+                                parse_obj_as(
+                                    type_=Error,  # type: ignore
                                     object_=_response.json(),
                                 ),
                             ),
