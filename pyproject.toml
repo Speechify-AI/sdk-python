@@ -6,7 +6,7 @@ license-files = ["LICENSE"]
 
 [tool.poetry]
 name = "speechify-api"
-version = "4.0.0"
+version = "5.0.0"
 description = "Official Speechify API SDK"
 readme = "README.md"
 authors = [
